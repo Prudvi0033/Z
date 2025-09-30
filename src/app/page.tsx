@@ -1,10 +1,10 @@
 import React from 'react'
-import GoogleLoginButton from './components/Login'
+import Login from './components/Login'
 
 const page = () => {
   return (
     <div>
-      <GoogleLoginButton  />
+      <Login  />
     </div>
   )
 }
