@@ -1,0 +1,205 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id      BigInt    @id @default(autoincrement())
+  email   String?   @unique
+  name    String?
+  image   String?
+
+  createAt DateTime @default(now())
+  updatedAt DateTime  @updatedAt
+
+  accounts    Account[]
+  sessions    Session[]
+
+  username    String?   @unique
+  passowrd    String?
+  description String?   @db.Text
+  location    String?
+  website     String?
+  dateOfJoining DateTime   @default(now())
+
+  //fk
+  posts     Post[]
+  comments  Comment[]
+  votes     Vote[]
+  bookmarks Bookmark[]
+
+  following Follow[]  @relation("UserFollowing")
+  followers Follow[]  @relation("UserFollowers")
+
+  notification    Notification[]    @relation("NoficationReciever")
+  triggeredNotification    Notification[]    @relation("NotificationTrigger")
+}
+
+
+
+model Account {
+  id                BigInt    @id @default(autoincrement())
+  userId            BigInt
+  provider          String
+  providerAccountId String
+  accessToken       String?   @db.Text
+  refreshToken      String?   @db.Text
+  expiresAt         DateTime?
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           BigInt   @id @default(autoincrement())
+  sessionToken String   @unique
+  expires      DateTime
+  userId       BigInt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  
+  @@unique([identifier, token])
+}
+
+model Post{
+  id      BigInt    @id @default(autoincrement())
+  message String    @db.Text
+  postImage String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  //fk
+  userId    BigInt
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  //relations
+  comments  Comment[]
+  votes     Vote[]
+  bookmarks Bookmark[]
+  notification  Notification[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Comment{
+  id    BigInt    @id @default(autoincrement())
+  description   String  @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  //fk
+  postId    BigInt
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  userId    BigInt
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  //relations
+  notification  Notification[]
+
+  @@index([postId])
+  @@index([userId])
+}
+
+model Vote {
+  id    BigInt    @id @default(autoincrement())
+  type  VoteType
+  createdAt DateTime  @default(now())
+
+  //fk
+  postId    BigInt
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  userId    BigInt
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model Bookmark {
+  id    BigInt    @id @default(autoincrement())
+  createdAt   DateTime    @default(now())
+
+  //fk
+  postId    BigInt
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  userId    BigInt
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model Follow {
+  id    BigInt    @id @default(autoincrement())
+  createdAt   DateTime    @default(now())
+
+  followerId    BigInt
+  follower      User      @relation("UserFollowing", fields: [followerId], references: [id])
+
+  followingId    BigInt
+  following     User      @relation("UserFollowers", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model Notification{
+  id    BigInt    @id @default(autoincrement())
+  type  NotificationType
+  isRead  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  //fk
+  userId     BigInt   
+  user       User     @relation("NoficationReciever", fields: [userId], references: [id], onDelete: Cascade)
+
+  triggeredById   BigInt?
+  triggeredBy     User?   @relation("NotificationTrigger", fields: [triggeredById], references: [id], onDelete: Cascade)
+
+  postId        BigInt?
+  post          Post?     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  commentId     BigInt?
+  comment       Comment?  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([isRead])
+}
+
+enum VoteType {
+  UPVOTE
+  DOWNVOTE
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  FOLLOW
+}
