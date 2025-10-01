@@ -96,7 +96,7 @@ export const getUserPosts = async () => {
             id: true,
             name: true,
             image: true,
-            username: true,
+            email: true,
           },
         },
         _count: {
@@ -126,7 +126,7 @@ export const getAllPosts = async () => {
           select: {
             id: true,
             name: true,
-            username: true,
+            email: true,
             image: true,
           },
         },
