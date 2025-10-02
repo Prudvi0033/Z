@@ -2,6 +2,7 @@
 import React from "react";
 import CreatePost from "./CreatePost";
 import { Inter } from "next/font/google";
+import Posts from "./Posts";
 const inter = Inter({ subsets: ["latin"] });
 
 const Home = () => {
@@ -11,6 +12,7 @@ const Home = () => {
 
         <div className="border w-full border-neutral-800 my-3"></div>
 
+        <Posts/>
     </div>
     
   );

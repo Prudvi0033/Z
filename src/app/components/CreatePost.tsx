@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 import { BsEmojiSunglasses, BsFillImageFill } from "react-icons/bs";
-import { FaImage } from "react-icons/fa";
-import { auth } from "../lib/auth";
 import { authClient } from "../lib/auth-client";
 import { createPost } from "../actions/post.action";
 import { toast } from "sonner";
