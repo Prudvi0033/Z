@@ -2,7 +2,9 @@ import React from 'react'
 
 const Fotter = () => {
   return (
-    <div></div>
+    <div className='bg-neutral-700'>
+
+    </div>
   )
 }
 

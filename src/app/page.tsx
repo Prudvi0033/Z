@@ -4,7 +4,7 @@ import Home from './components/Home'
 
 const page = () => {
   return (
-    <div>
+    <div className='bg-neutral-700'>
       <Home/>
     </div>
   )

@@ -36,7 +36,7 @@ const NavbarItems = [
 const Navbar = () => {
     const router = useRouter()
   return (
-    <div className={`w-[26rem] h-screen ${roboto.className}`}>
+    <div className={`w-[26rem] h-screen ${roboto.className} bg-neutral-900`}>
       <div className="flex items-center justify-center w-full px-12 py-2">
         <div className="flex flex-col items-end justify-center w-full ">
           <div >

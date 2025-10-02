@@ -7,12 +7,11 @@ import { MdEdit, MdOutlineLink } from "react-icons/md";
 import { SlCalender } from "react-icons/sl";
 
 import { useRouter } from "next/navigation";
-import { Inter, Lobster } from "next/font/google";
+import { Inter } from "next/font/google";
 import { IoIosLink } from "react-icons/io";
 import { CalendarRange } from "lucide-react";
 const roboto = Inter({ subsets: ["latin"] });
 
-const lob = Lobster({ subsets: ["latin"], weight: ["400"] });
 
 const bannerImages = [
   "/banner1.png",
@@ -24,6 +23,44 @@ const bannerImages = [
 const getABannerImage = () => {
   const randomIndex = Math.floor(Math.random() * bannerImages.length);
   return bannerImages[randomIndex];
+};
+
+const LoadingSkeleton = () => {
+  return (
+    <div className="w-full p-12 bg-neutral-900 rounded-lg border border-neutral-800 shadow-[4px_4px_4px_rgba(0,0,0,0.1),-4px_-4px_4px_rgba(0,0,0,0.08)]">
+      {/* Banner skeleton */}
+      <div className="h-28 relative rounded-2xl bg-neutral-800 animate-pulse">
+        <div className="absolute left-8 -bottom-10 w-20 h-20 rounded-full bg-neutral-800 shadow-[4px_4px_8px_rgba(0,0,0,0.5),-4px_-4px_8px_rgba(255,255,255,0.03)]"></div>
+      </div>
+
+      {/* Profile info skeleton */}
+      <div className="flex w-full items-center justify-between mt-12">
+        <div className="flex flex-col gap-2">
+          <div className="h-5 w-32 bg-neutral-800 rounded animate-pulse"></div>
+          <div className="h-4 w-24 bg-neutral-800 rounded animate-pulse"></div>
+        </div>
+        <div className="h-9 w-28 bg-neutral-800 rounded-2xl animate-pulse shadow-[inset_4px_4px_8px_rgba(0,0,0,0.5),inset_-4px_-4px_8px_rgba(255,255,255,0.03)]"></div>
+      </div>
+
+      {/* Description skeleton */}
+      <div className="mt-4 space-y-2">
+        <div className="h-4 w-full bg-neutral-800 rounded animate-pulse"></div>
+        <div className="h-4 w-3/4 bg-neutral-800 rounded animate-pulse"></div>
+      </div>
+
+      {/* Links skeleton */}
+      <div className="flex gap-x-6 mt-4">
+        <div className="h-4 w-32 bg-neutral-800 rounded animate-pulse"></div>
+        <div className="h-4 w-32 bg-neutral-800 rounded animate-pulse"></div>
+      </div>
+
+      {/* Following/Followers skeleton */}
+      <div className="flex gap-x-8 mt-2">
+        <div className="h-4 w-24 bg-neutral-800 rounded animate-pulse"></div>
+        <div className="h-4 w-24 bg-neutral-800 rounded animate-pulse"></div>
+      </div>
+    </div>
+  );
 };
 
 export const Profile = () => {
@@ -39,13 +76,21 @@ export const Profile = () => {
     fetchProfile();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div
+        className={`w-[42rem] p-6 h-screen border-r border-l border-neutral-700 overflow-y-auto ${roboto.className}`}
+      >
+        <LoadingSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div
       className={`w-[42rem] p-6 h-screen border-r border-l border-neutral-700 overflow-y-auto ${roboto.className}`}
     >
-      <div className="w-full border p-12 border-neutral-800 bg-neutral-900/90 shadow-sm shadow-white/5 rounded-lg">
+      <div className="w-full p-12 bg-neutral-900 rounded-xl border border-neutral-800 shadow-[4px_4px_4px_rgba(0,0,0,0.1),-4px_-4px_4px_rgba(0,0,0,0.08)]">
         <div className="h-28 relative rounded-2xl">
           <Image
             src={getABannerImage()}
@@ -61,20 +106,20 @@ export const Profile = () => {
 
         <div className="flex w-full items-center justify-between mt-12">
           <div className="flex flex-col">
-            <h1 className="text-sm font-semibold">{data?.name}</h1>
-            <p className="text-[12px] text-neutral-600">
+            <h1 className="text-lg font-semibold text-neutral-100">{data?.name}</h1>
+            <p className="text-[13px] text-neutral-500">
               {"@"}
               {data?.email?.split("@")[0]}
             </p>
           </div>
 
-          <div className="text-[12px] text-white px-2 py-1 border border-neutral-300 rounded-2xl hover:bg-white/20 cursor-pointer">
+          <div className="text-[13px] text-neutral-300 px-4 py-2 bg-neutral-900 rounded-2xl shadow-[inset_4px_4px_8px_rgba(0,0,0,0.5),inset_-4px_-4px_8px_rgba(255,255,255,0.03)] hover:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.5),inset_-2px_-2px_4px_rgba(255,255,255,0.03)] cursor-pointer transition-all duration-200">
             Edit profile
           </div>
         </div>
 
         <div className="flex flex-col">
-          <div className={`text-[12px] mt-4 `}>
+          <div className={`text-[13px] mt-4 text-neutral-300`}>
             {data?.description || "Simplicity is the soul of efficiency."}
           </div>
 
@@ -94,10 +139,7 @@ export const Profile = () => {
                   </a>
                 </div>
                 <div className="flex gap-x-1 items-center">
-                  <CalendarRange
-                    size={14}
-                    className="text-neutral-600"
-                  />
+                  <CalendarRange size={14} className="text-neutral-600" />
                   <span className="text-neutral-600">
                     {data?.createdAt
                       ? new Date(data.createdAt).toLocaleDateString("en-US", {
