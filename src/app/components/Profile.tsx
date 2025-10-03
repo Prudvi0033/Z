@@ -100,7 +100,7 @@ export const Profile = () => {
           />
 
           <div className=" absolute left-8 -bottom-10">
-            <img src={data?.image} alt="profile" className="rounded-full" />
+            <Image src={data?.image || ""} alt="profile" width={90} height={90} className="rounded-full" />
           </div>
         </div>
 

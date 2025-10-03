@@ -4,6 +4,7 @@ import Image from "next/image";
 import { BiComment, BiBookmark } from "react-icons/bi";
 import { AiOutlineHeart } from "react-icons/ai";
 import { FaRegComment } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 // Custom type that matches your Prisma query in getAllPosts
 interface User {
@@ -61,6 +62,7 @@ const PostSkeleton = () => (
 );
 
 const Posts = () => {
+  const router = useRouter()
   const [posts, setPosts] = useState<PostWithRelations[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -106,6 +108,7 @@ const Posts = () => {
     <div className="space-y-0">
       {posts.map((post) => (
         <div
+        onClick={() => {router.push(`/${post.user.email?.split("@")[0]}/${post.id}`)}}
           key={post.id}
           className="w-full border-b border-neutral-800 p-4 bg-neutral-900 hover:bg-neutral-800/50 transition-colors cursor-pointer"
         >

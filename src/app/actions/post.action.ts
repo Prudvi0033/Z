@@ -148,3 +148,46 @@ export const getAllPosts = async () => {
     return { success: false, error: "Failed to fetch posts" };
   }
 };
+
+export const getPostById = async (postId: string) => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) {
+    return { success: false, error: "Authentication is required" };
+  }
+
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            votes: true,
+            bookmarks: true,
+          },
+        },
+      },
+    });
+
+    if (!post) {
+      return { success: false, error: "Post not found" };
+    }
+
+    return { success: true, post };
+  } catch (error) {
+    console.error("Error fetching post by id:", error);
+    return { success: false, error: "Failed to fetch post" };
+  }
+};
+

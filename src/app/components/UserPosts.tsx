@@ -5,6 +5,7 @@ import Image from "next/image";
 import { BiBookmark } from "react-icons/bi";
 import { AiOutlineHeart } from "react-icons/ai";
 import { FaRegComment } from "react-icons/fa";
+import { formatPostDate } from '../lib/DateFormatter';
 
 interface User {
   id: string;
@@ -66,8 +67,8 @@ const UserPosts = () => {
 
     useEffect(() => {
         const fetchUserPosts = async () => {
+            setLoading(true)
             try {
-                setLoading(true)
                 const res = await getUserPosts();
                 if(res.sucess){
                     setPosts(res.userPosts)
@@ -87,21 +88,6 @@ const UserPosts = () => {
         fetchUserPosts()
     },[])
 
-    function formatPostDate(date: Date) {
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-
-        if (diffHours < 24) {
-            return `${diffHours}h`;
-        }
-
-        return date.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-        });
-    }
 
     if(loading){
         return (
@@ -165,42 +151,6 @@ const UserPosts = () => {
                                     />
                                 </div>
                             )}
-
-                            {/* Engagement actions */}
-                            <div className="flex items-center justify-between text-neutral-500 max-w-md pt-2">
-                                {/* Comments */}
-                                <button className="flex items-center gap-2 rounded-full hover:bg-blue-500/10 hover:text-blue-500 transition-colors group">
-                                    <FaRegComment
-                                        size={18}
-                                        className="group-hover:scale-110 transition-transform"
-                                    />
-                                    {post._count.comments > 0 && (
-                                        <span className="text-sm">{post._count.comments}</span>
-                                    )}
-                                </button>
-
-                                {/* Votes/Likes */}
-                                <button className="flex items-center gap-2 rounded-full hover:bg-red-500/10 hover:text-red-500 transition-colors group">
-                                    <AiOutlineHeart
-                                        size={18}
-                                        className="group-hover:scale-110 transition-transform"
-                                    />
-                                    {post._count.votes > 0 && (
-                                        <span className="text-sm">{post._count.votes}</span>
-                                    )}
-                                </button>
-
-                                {/* Bookmarks */}
-                                <button className="flex items-center gap-2 rounded-full hover:bg-green-500/10 hover:text-green-500 transition-colors group">
-                                    <BiBookmark
-                                        size={18}
-                                        className="group-hover:scale-110 transition-transform"
-                                    />
-                                    {post._count.bookmarks > 0 && (
-                                        <span className="text-sm">{post._count.bookmarks}</span>
-                                    )}
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
