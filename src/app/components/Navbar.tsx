@@ -59,48 +59,52 @@ const Navbar = () => {
   const pathname = usePathname();
   const [session, setSession] = useState<Session | null>(null);
 
-useEffect(() => {
-  const loadSession = async () => {
-    const result = await authClient.getSession();
-    if ("data" in result && result.data) {
-      setSession(result.data);
-    } else {
-      setSession(null);
+  useEffect(() => {
+    const loadSession = async () => {
+      const result = await authClient.getSession();
+      if ("data" in result && result.data) {
+        setSession(result.data);
+      } else {
+        setSession(null);
+      }
+    };
+    loadSession();
+  }, []);
+
+  const handleSignIn = async () => {
+    try {
+      await authClient.signIn({ provider: "google" });
+      const result = await authClient.getSession();
+      if ("data" in result && result.data) {
+        setSession(result.data);
+      }
+    } catch (err) {
+      console.error("SignIn error:", err);
     }
   };
-  loadSession();
-}, []);
 
-const handleSignIn = async () => {
-  try {
-    await authClient.signIn({ provider: "google" });
-    const result = await authClient.getSession();
-    if ("data" in result && result.data) {
-      setSession(result.data);
+  const handleSignOut = async () => {
+    try {
+      await authClient.signOut();
+      setSession(null);
+      router.push("/");
+    } catch (err) {
+      console.error("SignOut error:", err);
     }
-  } catch (err) {
-    console.error("SignIn error:", err);
-  }
-};
-
-const handleSignOut = async () => {
-  try {
-    await authClient.signOut();
-    setSession(null);
-    router.push("/");
-  } catch (err) {
-    console.error("SignOut error:", err);
-  }
-};
-
+  };
 
   return (
-    <div className={`w-[26rem] h-screen ${roboto.className} bg-neutral-900`}>
+    <div
+      className={`w-[26rem] h-screen ${roboto.className} selection:bg-neutral-300/40 bg-neutral-900`}
+    >
       <div className="flex items-center justify-end w-full px-12 py-6">
         <div className="flex flex-col items-end w-fit">
           {/* Logo */}
           <motion.div
-            className={`${bit.className} p-4 mb-20 text-white text-4xl flex w-full items-start`}
+            onClick={() => {
+              router.push("/");
+            }}
+            className={`${bit.className} p-4 mb-20 text-white text-4xl cursor-pointer flex w-full items-start`}
             style={{
               backgroundImage:
                 "linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.3) 100%)",
@@ -147,7 +151,7 @@ const handleSignOut = async () => {
             <div className="w-full h-fit absolute bottom-8 px-2">
               <TextHoverEffect text="Alpha" duration={0.3} />
             </div>
-            
+
             {session ? (
               <button
                 onClick={handleSignOut}
