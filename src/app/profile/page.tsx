@@ -3,14 +3,14 @@
 import React, { useEffect, useState } from "react";
 import { getUserProfile, UserProfile } from "../actions/profile.action";
 import Image from "next/image";
-import { MdEdit, MdOutlineLink } from "react-icons/md";
+import {MdOutlineLink } from "react-icons/md";
 import { SlCalender } from "react-icons/sl";
 
 import { useRouter } from "next/navigation";
-import { Inter } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import { IoIosLink } from "react-icons/io";
 import { CalendarRange } from "lucide-react";
-const roboto = Inter({ subsets: ["latin"] });
+const roboto = Space_Grotesk({ subsets: ["latin"] });
 
 
 const bannerImages = [

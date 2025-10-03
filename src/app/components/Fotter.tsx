@@ -1,13 +1,19 @@
-import React from 'react'
+// Footer component
+import { TextHoverEffect } from "@/components/ui/text-hover-effect";
+import { Montserrat } from "next/font/google";
 
-const Fotter = () => {
+const monte = Montserrat({ subsets: ["latin"], weight: ["700"] });
+
+const Footer = () => {
   return (
-    <div className='w-lg bg-red-500'>
-        <div className='w-full relative top-12 h-fit -rotate-90  text-[10rem]'>
-          Alpha
-        </div>
+    <div
+      className={`min-h-screen overflow-hidden bg-neutral-900 ${monte.className}`}
+    >
+      <div className="w-full h-fit relative top-[39rem] px-16">
+        <TextHoverEffect text="Alpha" duration={0.3} />
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Fotter
+export default Footer;
