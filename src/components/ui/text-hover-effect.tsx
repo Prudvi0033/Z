@@ -79,7 +79,7 @@ export const TextHoverEffect = ({
         className="font-[helvetica] text-[100px] font-bold"
         style={{
           fill: "transparent",
-          stroke: "#262626", // 🔹 ghost stroke, just above bg (#171717)
+          stroke: "#404040",
         }}
       >
         {text}

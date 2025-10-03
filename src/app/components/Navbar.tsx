@@ -12,6 +12,7 @@ import { FaCookie } from "react-icons/fa";
 import { GoHome } from "react-icons/go";
 import { motion } from "framer-motion";
 import { Bitcount_Single, Space_Grotesk } from "next/font/google";
+import { TextHoverEffect } from "@/components/ui/text-hover-effect";
 
 // Add these interfaces
 interface Session {
@@ -141,18 +142,23 @@ const handleSignOut = async () => {
           })}
 
           {/* Auth Button */}
-          <div className="mt-32">
+          <div className="mt-32 relative">
+            {/* Background TextHoverEffect */}
+            <div className="w-full h-fit absolute bottom-8 px-2">
+              <TextHoverEffect text="Alpha" duration={0.3} />
+            </div>
+            
             {session ? (
               <button
                 onClick={handleSignOut}
-                className="py-3 px-18 rounded-xl cursor-pointer bg-gradient-to-br from-neutral-100 to-white text-black font-semibold transition-all duration-200 shadow-[6px_6px_12px_rgba(0,0,0,0.4),-6px_-6px_12px_rgba(255,255,255,0.05)] hover:shadow-[8px_8px_16px_rgba(0,0,0,0.5),-8px_-8px_16px_rgba(255,255,255,0.08)] active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.25),inset_-4px_-4px_8px_rgba(255,255,255,0.1)] hover:scale-105 active:scale-95"
+                className="py-3 px-18 rounded-xl cursor-pointer bg-gradient-to-br from-neutral-100 to-white text-black font-semibold transition-all duration-200 shadow-[6px_6px_12px_rgba(0,0,0,0.4),-6px_-6px_12px_rgba(255,255,255,0.05)] active:scale-95 relative z-10"
               >
                 Sign Out
               </button>
             ) : (
               <button
                 onClick={handleSignIn}
-                className="py-3 px-18 rounded-xl cursor-pointer bg-gradient-to-br from-neutral-100 to-white text-black font-semibold transition-all duration-200 shadow-[6px_6px_12px_rgba(0,0,0,0.4),-6px_-6px_12px_rgba(255,255,255,0.05)] hover:shadow-[8px_8px_16px_rgba(0,0,0,0.5),-8px_-8px_16px_rgba(255,255,255,0.08)] active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.25),inset_-4px_-4px_8px_rgba(255,255,255,0.1)] hover:scale-105 active:scale-95"
+                className="py-3 px-18 rounded-xl cursor-pointer bg-gradient-to-br from-neutral-100 to-white text-black font-semibold transition-all duration-200 shadow-[6px_6px_12px_rgba(0,0,0,0.4),-6px_-6px_12px_rgba(255,255,255,0.05)] active:scale-95 relative z-10"
               >
                 Sign In
               </button>
