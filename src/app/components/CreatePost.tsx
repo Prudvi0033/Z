@@ -56,7 +56,7 @@ const CreatePost = () => {
         <button
           onClick={handlePost}
           disabled={post.trim().length < 1 || loading}
-          className="text-[13px] text-black font-semibold px-4 py-2 bg-neutral-300 rounded-4xl cursor-pointer"
+          className="text-[14px] text-black font-bold px-4 py-2 bg-white rounded-md cursor-pointer"
         >
           {loading ? (
             <AiOutlineLoading3Quarters size={24} className="animate-spin" />

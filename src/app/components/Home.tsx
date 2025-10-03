@@ -1,9 +1,10 @@
 "use client";
 import React from "react";
 import CreatePost from "./CreatePost";
-import { Inter } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import Posts from "./Posts";
-const inter = Inter({ subsets: ["latin"] });
+const inter = Space_Grotesk({ subsets: ["latin"] });
+
 
 const Home = () => {
   return (

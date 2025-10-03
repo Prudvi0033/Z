@@ -1,55 +1,162 @@
-'use client'
+"use client";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { HiHome } from "react-icons/hi2";
 import { IoNotifications } from "react-icons/io5";
 import { PiBookmarkSimple } from "react-icons/pi";
 import { RiUser3Fill } from "react-icons/ri";
+import { useRouter, usePathname } from "next/navigation";
+import { PersonStanding } from "lucide-react";
+import { authClient } from "../lib/auth-client";
+import { FaCookie } from "react-icons/fa";
+import { GoHome } from "react-icons/go";
+import { motion } from "framer-motion";
+import { Bitcount_Single, Space_Grotesk } from "next/font/google";
 
-import { Inter } from "next/font/google";
-import { useRouter } from "next/navigation";
-const roboto = Inter({subsets: ['latin']})
+// Add these interfaces
+interface Session {
+  user?: {
+    name?: string;
+    email?: string;
+    image?: string;
+  };
+  expires?: string;
+}
 
-const NavbarItems = [
+interface NavItem {
+  title: string;
+  icon: React.ReactNode;
+  ref: string;
+}
+
+const roboto = Space_Grotesk({ subsets: ["latin"] }) as { className: string };
+
+const bit = Bitcount_Single({ subsets: ["latin"] }) as { className: string };
+
+const NavbarItems: NavItem[] = [
+  { title: "Home", icon: <GoHome size={28} />, ref: "/" },
   {
-    title: "Home",
-    icon: <HiHome size={24} />,
-    ref: "/",
+    title: "Community",
+    icon: <FaCookie size={24} />,
+    ref: "/community",
   },
   {
     title: "Notifications",
     icon: <IoNotifications size={24} />,
-    ref: "/",
+    ref: "/notifications",
   },
   {
     title: "Bookmarks",
     icon: <PiBookmarkSimple size={24} />,
-    ref: "/",
+    ref: "/bookmarks",
   },
-  {
-    title: "Profile",
-    icon: <RiUser3Fill size={24} />,
-    ref: "/profile",
-  },
+  { title: "Profile", icon: <RiUser3Fill size={24} />, ref: "/profile" },
 ];
 
 const Navbar = () => {
-    const router = useRouter()
+  const router = useRouter();
+  const pathname = usePathname();
+  const [session, setSession] = useState<Session | null>(null);
+
+useEffect(() => {
+  const loadSession = async () => {
+    const result = await authClient.getSession();
+    if ("data" in result && result.data) {
+      setSession(result.data);
+    } else {
+      setSession(null);
+    }
+  };
+  loadSession();
+}, []);
+
+const handleSignIn = async () => {
+  try {
+    await authClient.signIn({ provider: "google" });
+    const result = await authClient.getSession();
+    if ("data" in result && result.data) {
+      setSession(result.data);
+    }
+  } catch (err) {
+    console.error("SignIn error:", err);
+  }
+};
+
+const handleSignOut = async () => {
+  try {
+    await authClient.signOut();
+    setSession(null);
+    router.push("/");
+  } catch (err) {
+    console.error("SignOut error:", err);
+  }
+};
+
+
   return (
     <div className={`w-[26rem] h-screen ${roboto.className} bg-neutral-900`}>
-      <div className="flex items-center justify-center w-full px-12 py-2">
-        <div className="flex flex-col items-end justify-center w-full ">
-          <div >
-            <Image onClick={() => router.push("/")} src="/alpha.svg" alt="alpha" width={45} height={45} className="mb-4 cursor-pointer hover:bg-white/15 p-2 rounded-full transition-colors duration-300" />
+      <div className="flex items-center justify-end w-full px-12 py-6">
+        <div className="flex flex-col items-end w-fit">
+          {/* Logo */}
+          <motion.div
+            className={`${bit.className} p-4 mb-20 text-white text-4xl flex w-full items-start`}
+            style={{
+              backgroundImage:
+                "linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.3) 100%)",
+              backgroundSize: "200% 100%",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              color: "transparent",
+            }}
+            animate={{
+              backgroundPosition: ["200% 0", "-200% 0"],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+          >
+            Alpha
+          </motion.div>
 
-            {NavbarItems.map((item) => (
-              <div key={item.title} className="mt-2 mr-7">
-                <div onClick={() => router.push(`${item.ref}`)} className="flex items-center gap-x-5 text-white cursor-pointer hover:bg-white/10 p-[10px] rounded-4xl font-medium text-xl w-fit transition-colors duration-300">
-                  <div>{item.icon}</div>
-                  <div>{item.title}</div>
-                </div>
+          {/* Navigation */}
+          {NavbarItems.map((item) => {
+            const isActive = pathname === item.ref;
+            return (
+              <div
+                key={item.title}
+                onClick={() => router.push(item.ref)}
+                className={`flex items-center gap-x-5 cursor-pointer py-3 px-6 w-full rounded-lg font-medium text-lg mb-2 transition-colors duration-300
+                  ${
+                    isActive
+                      ? "bg-white text-black"
+                      : "text-white hover:bg-white/10"
+                  }`}
+              >
+                <div>{item.icon}</div>
+                <div>{item.title}</div>
               </div>
-            ))}
+            );
+          })}
+
+          {/* Auth Button */}
+          <div className="mt-32">
+            {session ? (
+              <button
+                onClick={handleSignOut}
+                className="py-3 px-18 rounded-xl cursor-pointer bg-gradient-to-br from-neutral-100 to-white text-black font-semibold transition-all duration-200 shadow-[6px_6px_12px_rgba(0,0,0,0.4),-6px_-6px_12px_rgba(255,255,255,0.05)] hover:shadow-[8px_8px_16px_rgba(0,0,0,0.5),-8px_-8px_16px_rgba(255,255,255,0.08)] active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.25),inset_-4px_-4px_8px_rgba(255,255,255,0.1)] hover:scale-105 active:scale-95"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <button
+                onClick={handleSignIn}
+                className="py-3 px-18 rounded-xl cursor-pointer bg-gradient-to-br from-neutral-100 to-white text-black font-semibold transition-all duration-200 shadow-[6px_6px_12px_rgba(0,0,0,0.4),-6px_-6px_12px_rgba(255,255,255,0.05)] hover:shadow-[8px_8px_16px_rgba(0,0,0,0.5),-8px_-8px_16px_rgba(255,255,255,0.08)] active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.25),inset_-4px_-4px_8px_rgba(255,255,255,0.1)] hover:scale-105 active:scale-95"
+              >
+                Sign In
+              </button>
+            )}
           </div>
         </div>
       </div>
