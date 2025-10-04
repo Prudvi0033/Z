@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { getPostById } from "../actions/post.action";
+import { toogleLike } from "../actions/likes.action";
 import Image from "next/image";
 import { formatPostDateTime } from "../lib/DateFormatter";
 import { BiBookmark } from "react-icons/bi";
-import { AiOutlineHeart } from "react-icons/ai";
+import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { FaRegComment } from "react-icons/fa";
 
 type PostIdProps = {
@@ -26,19 +27,34 @@ type Post = {
     votes: number;
     bookmarks: number;
   };
+  hasLiked?: boolean; // Whether current user has liked this post
+  likesCount?: number; // Actual like count
 };
 
 const ParticularPost = ({ postId }: PostIdProps) => {
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
 
   useEffect(() => {
     const fetchPost = async () => {
       setLoading(true);
       try {
         const res = await getPostById(postId);
-        if (res.success) {
-          setPost(res.post as Post);
+        if (res.success && res.post) {
+          const fetchedPost = res.post as Post;
+          setPost(fetchedPost);
+          
+          // Initialize like state
+          setIsLiked(fetchedPost.hasLiked || false);
+          
+          // FIXED: Use likesCount if it exists (even if 0), otherwise fallback
+          setLikeCount(
+            fetchedPost.likesCount !== undefined 
+              ? fetchedPost.likesCount 
+              : fetchedPost._count.votes
+          );
         }
       } catch (error) {
         console.log(error);
@@ -49,6 +65,26 @@ const ParticularPost = ({ postId }: PostIdProps) => {
 
     fetchPost();
   }, [postId]);
+
+  const handleLike = async () => {
+    if (!post) return;
+    
+    // Optimistic update
+    const wasLiked = isLiked;
+    setIsLiked(!wasLiked);
+    setLikeCount(prev => wasLiked ? Math.max(0, prev - 1) : prev + 1);
+
+    // Call the server action
+    const result = await toogleLike(post.id);
+    
+    if (!result.success) {
+      // Revert optimistic update on error
+      setIsLiked(wasLiked);
+      setLikeCount(prev => wasLiked ? prev + 1 : Math.max(0, prev - 1));
+      console.error("Failed to toggle like:", result.error);
+      // Consider showing a toast/notification to user
+    }
+  };
 
   const PostLoadingSkeleton = () => {
     return (
@@ -132,7 +168,7 @@ const ParticularPost = ({ postId }: PostIdProps) => {
 
       {/* Post image if exists */}
       {post.postImage && (
-        <div className="mb-3 rounded-2xl overflow-hidden">
+        <div className="mb-3 rounded-2xl overflow-hidden border border-neutral-800">
           <Image
             src={post.postImage}
             alt="Post image"
@@ -154,24 +190,35 @@ const ParticularPost = ({ postId }: PostIdProps) => {
       {/* Actions */}
       <div className="flex items-center justify-around gap-6 text-neutral-500">
         {/* Comments */}
-        <button className="flex items-center gap-2 hover:text-blue-500 transition-colors">
-          <FaRegComment size={18} />
+        <button className="flex items-center gap-2 hover:text-blue-500 hover:bg-blue-500/10 transition-colors rounded-full p-2 group">
+          <FaRegComment size={18} className="group-hover:scale-110 transition-transform" />
           {post._count.comments > 0 && (
             <span className="text-sm">{post._count.comments}</span>
           )}
         </button>
 
         {/* Votes/Likes */}
-        <button className="flex items-center gap-2 hover:text-red-500 transition-colors">
-          <AiOutlineHeart size={20} />
-          {post._count.votes > 0 && (
-            <span className="text-sm">{post._count.votes}</span>
+        <button 
+          onClick={handleLike}
+          className={`flex items-center gap-2 transition-colors rounded-full p-2 group ${
+            isLiked 
+              ? "text-red-500" 
+              : "hover:text-red-500 hover:bg-red-500/10"
+          }`}
+        >
+          {isLiked ? (
+            <AiFillHeart size={20} className="group-hover:scale-110 transition-transform" />
+          ) : (
+            <AiOutlineHeart size={20} className="group-hover:scale-110 transition-transform" />
+          )}
+          {likeCount > 0 && (
+            <span className="text-sm">{likeCount}</span>
           )}
         </button>
 
         {/* Bookmarks */}
-        <button className="flex items-center gap-2 hover:text-green-500 transition-colors">
-          <BiBookmark size={20} />
+        <button className="flex items-center gap-2 hover:text-green-500 hover:bg-green-500/10 transition-colors rounded-full p-2 group">
+          <BiBookmark size={20} className="group-hover:scale-110 transition-transform" />
           {post._count.bookmarks > 0 && (
             <span className="text-sm">{post._count.bookmarks}</span>
           )}
