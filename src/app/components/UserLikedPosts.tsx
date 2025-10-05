@@ -1,33 +1,24 @@
 import React, { useEffect, useState } from 'react'
-import { getUserPosts } from '../actions/post.action';
-import { toast } from 'sonner';
 import Image from "next/image";
+import { AiOutlineHeart } from "react-icons/ai";
 import { formatPostDate } from '../lib/DateFormatter';
-import { IoMdGrid } from 'react-icons/io';
+import { getLikedPostsForUser } from '../actions/like.action';
 
 interface User {
   id: string;
   name: string | null;
-  email: string | null;
   image: string | null;
 }
 
-interface PostWithRelations {
+interface LikedPost {
   id: string;
   message: string;
   createdAt: Date;
-  updatedAt: Date;
-  userId: string;
   postImage: string | null;
   user: User;
-  _count: {
-    comments: number;
-    votes: number;
-    bookmarks: number;
-  };
 }
 
-const PostSkeleton = () => (
+const LikedPostSkeleton = () => (
   <div className="w-full border-b border-neutral-800 p-4 bg-neutral-900 animate-pulse">
     <div className="flex items-start gap-3">
       {/* Avatar skeleton */}
@@ -59,23 +50,17 @@ const PostSkeleton = () => (
   </div>
 );
 
-
-
-const UserPosts = () => {
-    const [posts, setPosts] = useState<PostWithRelations[]>([])
+const UserLikedPosts = () => {
+    const [posts, setPosts] = useState<LikedPost[]>([])
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
-        const fetchUserPosts = async () => {
+        const fetchLikedPosts = async () => {
             setLoading(true)
             try {
-                const res = await getUserPosts();
+                const res = await getLikedPostsForUser();
                 if(res.sucess){
-                    setPosts(res.userPosts)
-                }
-                else{
-                    toast("Error in fetching user posts")
-                    setLoading(false)
+                    setPosts(res.likedPosts)
                 }
             } catch (error) {
                 console.log(error);
@@ -85,15 +70,14 @@ const UserPosts = () => {
             }
         }
 
-        fetchUserPosts()
+        fetchLikedPosts()
     },[])
-
 
     if(loading){
         return (
             <div className="space-y-0">
                 {[...Array(5)].map((_, i) => (
-                    <PostSkeleton key={i} />
+                    <LikedPostSkeleton key={i} />
                 ))}
             </div>
         )
@@ -102,10 +86,10 @@ const UserPosts = () => {
     if(posts.length === 0){
         return (
             <div className="flex flex-col items-center justify-center py-16 px-4">
-                <IoMdGrid className="w-16 h-16 text-neutral-600 mb-4" />
-                <h3 className="text-white text-xl font-semibold mb-2">No posts yet</h3>
+                <AiOutlineHeart className="w-16 h-16 text-neutral-600 mb-4" />
+                <h3 className="text-white text-xl font-semibold mb-2">No liked posts yet</h3>
                 <p className="text-neutral-500 text-center">
-                    Your like will appear here
+                    Posts you like will appear here
                 </p>
             </div>
         )
@@ -141,9 +125,6 @@ const UserPosts = () => {
                                         </span>
                                     </div>
                                 </span>
-                                <span className="text-neutral-500 text-[14px]">
-                                    @{post.user.email?.split("@")[0] || "anonymous"}
-                                </span>
                             </div>
 
                             {/* Post message */}
@@ -171,4 +152,4 @@ const UserPosts = () => {
     )
 }
 
-export default UserPosts
+export default UserLikedPosts

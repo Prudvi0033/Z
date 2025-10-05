@@ -5,9 +5,15 @@ import { BiBookmark } from "react-icons/bi";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { FaRegComment } from "react-icons/fa";
 import { useRouter } from "next/navigation";
-import { toogleLike } from "../actions/likes.action";
+import { getUserLikedPosts, toogleLike } from "../actions/like.action";
 
-// Extended interface to include like information
+interface User {
+  id: string;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+}
+
 interface PostWithRelations {
   id: string;
   message: string;
@@ -15,19 +21,12 @@ interface PostWithRelations {
   updatedAt: Date;
   userId: string;
   postImage: string | null;
-  user: {
-    id: string;
-    name: string | null;
-    email: string | null;
-    image: string | null;
-  };
+  user: User;
   _count: {
     comments: number;
     votes: number;
     bookmarks: number;
   };
-  hasLiked?: boolean; // Added: whether current user liked this post
-  likesCount?: number; // Added: actual like count
 }
 
 const PostSkeleton = () => (
@@ -59,67 +58,120 @@ const Posts = () => {
   const router = useRouter();
   const [posts, setPosts] = useState<PostWithRelations[]>([]);
   const [loading, setLoading] = useState(false);
-
-  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
-  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
+  const [votedPosts, setVotedPosts] = useState<Set<string>>(new Set());
+  const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
-      const res = await getAllPosts();
-      if (res.success && res.allPosts) {
-        setPosts(res.allPosts as PostWithRelations[]);
+      const [postsRes, likedRes] = await Promise.all([
+        getAllPosts(),
+        getUserLikedPosts(),
+      ]);
+      
+      if (postsRes.success && postsRes.allPosts) {
+        setPosts(postsRes.allPosts as PostWithRelations[]);
         
-        // Initialize like counts and liked posts
+        // Initialize vote counts
         const counts: Record<string, number> = {};
-        const liked = new Set<string>();
-        
-        res.allPosts.forEach((post: PostWithRelations) => {
-          // Use likesCount if provided by backend, otherwise fallback to _count.votes
-          counts[post.id] = post.likesCount ?? post._count.votes;
-          
-          // Check if user has already liked this post
-          if (post.hasLiked) {
-            liked.add(post.id);
-          }
+        postsRes.allPosts.forEach((post: PostWithRelations) => {
+          counts[post.id] = post._count.votes;
         });
-        
-        setLikeCounts(counts);
-        setLikedPosts(liked);
+        setVoteCounts(counts);
       }
+
+      // Set initially liked posts
+      if (likedRes.success && likedRes.likedPostIds) {
+        setVotedPosts(new Set(likedRes.likedPostIds));
+      }
+      
       setLoading(false);
     };
     fetchPosts();
   }, []);
 
-  const handleLike = async (e: React.MouseEvent, postId: string) => {
-    e.stopPropagation(); 
+  const handleVote = async (e: React.MouseEvent, postId: string) => {
+    e.stopPropagation(); // Prevent navigation to post detail
     
-    const wasLiked = likedPosts.has(postId);
-    const newLikedPosts = new Set(likedPosts);
+    // Store current state for rollback if needed
+    const wasVoted = votedPosts.has(postId);
+    const previousCount = voteCounts[postId] ?? 0;
     
-    if (wasLiked) {
-      newLikedPosts.delete(postId);
-      setLikeCounts(prev => ({ ...prev, [postId]: Math.max(0, (prev[postId] || 0) - 1) }));
-    } else {
-      newLikedPosts.add(postId);
-      setLikeCounts(prev => ({ ...prev, [postId]: (prev[postId] || 0) + 1 }));
-    }
-    
-    setLikedPosts(newLikedPosts);
+    // OPTIMISTIC UPDATE - Update UI immediately
+    setVotedPosts((prev) => {
+      const newSet = new Set(prev);
+      if (wasVoted) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
 
-    const result = await toogleLike(postId);
+    setVoteCounts((prev) => ({
+      ...prev,
+      [postId]: wasVoted ? previousCount - 1 : previousCount + 1,
+    }));
     
-    if (!result.success) {
-      setLikedPosts(likedPosts);
-      setLikeCounts(prev => {
-        const newCounts = { ...prev };
-        newCounts[postId] = wasLiked 
-          ? (prev[postId] || 0) + 1 
-          : Math.max(0, (prev[postId] || 0) - 1);
-        return newCounts;
+    try {
+      const res = await toogleLike(postId);
+      
+      if (res.success) {
+        // Update with actual count from server
+        if (res.voteCount !== undefined) {
+          setVoteCounts((prev) => ({
+            ...prev,
+            [postId]: res.voteCount,
+          }));
+        }
+        
+        // Ensure voted state matches server response
+        setVotedPosts((prev) => {
+          const newSet = new Set(prev);
+          if (res.isVoted) {
+            newSet.add(postId);
+          } else {
+            newSet.delete(postId);
+          }
+          return newSet;
+        });
+      } else {
+        // ROLLBACK - Revert optimistic update on error
+        setVotedPosts((prev) => {
+          const newSet = new Set(prev);
+          if (wasVoted) {
+            newSet.add(postId);
+          } else {
+            newSet.delete(postId);
+          }
+          return newSet;
+        });
+        
+        setVoteCounts((prev) => ({
+          ...prev,
+          [postId]: previousCount,
+        }));
+        
+        console.error("Error toggling vote:", res.error);
+      }
+    } catch (error) {
+      // ROLLBACK on exception
+      setVotedPosts((prev) => {
+        const newSet = new Set(prev);
+        if (wasVoted) {
+          newSet.add(postId);
+        } else {
+          newSet.delete(postId);
+        }
+        return newSet;
       });
-      console.error("Failed to toggle like:", result.error);
+      
+      setVoteCounts((prev) => ({
+        ...prev,
+        [postId]: previousCount,
+      }));
+      
+      console.error("Error toggling vote:", error);
     }
   };
 
@@ -152,9 +204,9 @@ const Posts = () => {
   return (
     <div className="space-y-0">
       {posts.map((post) => {
-        const isLiked = likedPosts.has(post.id);
-        const likeCount = likeCounts[post.id] || 0;
-        
+        const isVoted = votedPosts.has(post.id);
+        const voteCount = voteCounts[post.id] ?? post._count.votes;
+
         return (
           <div
             onClick={() => {
@@ -164,7 +216,6 @@ const Posts = () => {
             className="w-full border-b border-neutral-800 p-4 bg-neutral-900 hover:bg-neutral-800/50 transition-colors cursor-pointer"
           >
             <div className="flex items-start gap-3">
-              {/* User avatar */}
               <Image
                 src={post.user?.image || "/default-avatar.png"}
                 alt={post.user?.name || "User"}
@@ -174,11 +225,9 @@ const Posts = () => {
               />
 
               <div className="flex-1 min-w-0">
-                {/* User info and timestamp */}
                 <div className="flex flex-col mb-2">
                   <span className="text-white flex gap-x-2 font-semibold text-[14px]">
                     {post.user?.name || "Anonymous"}
-
                     <div className="flex gap-2">
                       <span className="text-neutral-500 text-[14px]">·</span>
                       <span className="text-neutral-500 text-[14px]">
@@ -191,12 +240,10 @@ const Posts = () => {
                   </span>
                 </div>
 
-                {/* Post message */}
                 <p className="text-white text-[15px] mb-3 leading-relaxed break-words">
                   {post.message}
                 </p>
 
-                {/* Post image if exists */}
                 {post.postImage && (
                   <div className="mb-3 rounded-2xl overflow-hidden border border-neutral-800">
                     <Image
@@ -209,12 +256,13 @@ const Posts = () => {
                   </div>
                 )}
 
-                {/* Engagement actions */}
                 <div className="flex items-center justify-between text-neutral-500 max-w-md pt-2">
-                  {/* Comments */}
-                  <button 
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-2 rounded-full hover:bg-blue-500/10 hover:text-blue-500 transition-colors group"
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/${post.user.email?.split("@")[0]}/${post.id}`);
+                    }}
+                    className="flex items-center gap-2 rounded-full hover:text-blue-500 transition-colors group"
                   >
                     <FaRegComment
                       size={18}
@@ -225,14 +273,13 @@ const Posts = () => {
                     )}
                   </button>
 
-                  {/* Votes/Likes */}
                   <button
-                    onClick={(e) => handleLike(e, post.id)}
+                    onClick={(e) => handleVote(e, post.id)}
                     className={`flex items-center gap-2 rounded-full transition-colors group ${
-                      isLiked ? "text-red-500" : "hover:text-red-500 hover:bg-red-500/10"
+                      isVoted ? "text-red-500" : "hover:text-red-500"
                     }`}
                   >
-                    {isLiked ? (
+                    {isVoted ? (
                       <AiFillHeart
                         size={18}
                         className="group-hover:scale-110 transition-transform"
@@ -243,16 +290,12 @@ const Posts = () => {
                         className="group-hover:scale-110 transition-transform"
                       />
                     )}
-                    {likeCount > 0 && (
-                      <span className="text-sm">{likeCount}</span>
+                    {voteCount > 0 && (
+                      <span className="text-sm">{voteCount}</span>
                     )}
                   </button>
 
-                  {/* Bookmarks */}
-                  <button 
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-2 rounded-full hover:bg-green-500/10 hover:text-green-500 transition-colors group"
-                  >
+                  <button className="flex items-center gap-2 rounded-full hover:bg-green-500/10 hover:text-green-500 transition-colors group">
                     <BiBookmark
                       size={18}
                       className="group-hover:scale-110 transition-transform"
