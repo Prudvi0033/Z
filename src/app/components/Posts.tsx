@@ -3,9 +3,13 @@ import { getAllPosts } from "../actions/post.action";
 import Image from "next/image";
 import { BiBookmark } from "react-icons/bi";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
-import { FaRegComment } from "react-icons/fa";
+import { FaBookmark, FaRegBookmark, FaRegComment } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { getUserLikedPosts, toogleLike } from "../actions/like.action";
+import {
+  getUserBookmarkedPosts,
+  toogleBookmark,
+} from "../actions/bookmark.action";
 
 interface User {
   id: string;
@@ -61,30 +65,49 @@ const Posts = () => {
   const [votedPosts, setVotedPosts] = useState<Set<string>>(new Set());
   const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
 
+  const [bookmarkedPosts, setBookmarkedPosts] = useState<Set<string>>(
+    new Set()
+  );
+  const [bookmarkCounts, setBookmarkCounts] = useState<Record<string, number>>(
+    {}
+  );
+
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
-      const [postsRes, likedRes] = await Promise.all([
+      const [postsRes, likedRes, bookmarkRes] = await Promise.all([
         getAllPosts(),
         getUserLikedPosts(),
+        getUserBookmarkedPosts(),
       ]);
-      
+
       if (postsRes.success && postsRes.allPosts) {
         setPosts(postsRes.allPosts as PostWithRelations[]);
-        
+
         // Initialize vote counts
         const counts: Record<string, number> = {};
         postsRes.allPosts.forEach((post: PostWithRelations) => {
           counts[post.id] = post._count.votes;
         });
         setVoteCounts(counts);
+
+        //initialize bookmark counts
+        const bookCounts: Record<string, number> = {};
+        postsRes.allPosts.forEach((post: PostWithRelations) => {
+          bookCounts[post.id] = post._count.bookmarks;
+        });
+        setBookmarkCounts(bookCounts);
       }
 
       // Set initially liked posts
       if (likedRes.success && likedRes.likedPostIds) {
         setVotedPosts(new Set(likedRes.likedPostIds));
       }
-      
+
+      if (bookmarkRes.success && bookmarkRes.bookmarkedPostIds) {
+        setBookmarkedPosts(new Set(bookmarkRes.bookmarkedPostIds));
+      }
+
       setLoading(false);
     };
     fetchPosts();
@@ -92,11 +115,11 @@ const Posts = () => {
 
   const handleVote = async (e: React.MouseEvent, postId: string) => {
     e.stopPropagation(); // Prevent navigation to post detail
-    
+
     // Store current state for rollback if needed
     const wasVoted = votedPosts.has(postId);
     const previousCount = voteCounts[postId] ?? 0;
-    
+
     // OPTIMISTIC UPDATE - Update UI immediately
     setVotedPosts((prev) => {
       const newSet = new Set(prev);
@@ -112,10 +135,10 @@ const Posts = () => {
       ...prev,
       [postId]: wasVoted ? previousCount - 1 : previousCount + 1,
     }));
-    
+
     try {
       const res = await toogleLike(postId);
-      
+
       if (res.success) {
         // Update with actual count from server
         if (res.voteCount !== undefined) {
@@ -124,7 +147,7 @@ const Posts = () => {
             [postId]: res.voteCount,
           }));
         }
-        
+
         // Ensure voted state matches server response
         setVotedPosts((prev) => {
           const newSet = new Set(prev);
@@ -146,12 +169,12 @@ const Posts = () => {
           }
           return newSet;
         });
-        
+
         setVoteCounts((prev) => ({
           ...prev,
           [postId]: previousCount,
         }));
-        
+
         console.error("Error toggling vote:", res.error);
       }
     } catch (error) {
@@ -165,13 +188,92 @@ const Posts = () => {
         }
         return newSet;
       });
-      
+
       setVoteCounts((prev) => ({
         ...prev,
         [postId]: previousCount,
       }));
-      
+
       console.error("Error toggling vote:", error);
+    }
+  };
+
+  const handleBookmark = async (e: React.MouseEvent, postId: string) => {
+    e.stopPropagation();
+
+    const wasBookmarked = bookmarkedPosts.has(postId);
+    const previousBookmark = bookmarkCounts[postId] ?? 0;
+
+    setBookmarkedPosts((prev) => {
+      const newSet = new Set(prev);
+      if (wasBookmarked) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
+
+    setBookmarkCounts((prev) => ({
+      ...prev,
+      [postId]: wasBookmarked ? previousBookmark - 1 : previousBookmark + 1,
+    }));
+
+    try {
+      const res = await toogleBookmark(postId);
+      if (res.success) {
+        if (res.bookmarksCount !== undefined) {
+          setBookmarkCounts((prev) => ({
+            ...prev,
+            [postId]: res.bookmarksCount,
+          }));
+        }
+
+        setBookmarkedPosts((prev) => {
+          const newSet = new Set(prev);
+          if (res.isBookmarkAdded) {
+            newSet.delete(postId);
+          } else {
+            newSet.add(postId);
+          }
+          return newSet;
+        });
+      } else {
+        //revert to old bookmark count if failed
+        setBookmarkedPosts((prev) => {
+          const newSet = new Set(prev);
+          if (wasBookmarked) {
+            newSet.delete(postId);
+          } else {
+            newSet.add(postId);
+          }
+          return newSet;
+        });
+
+        setBookmarkCounts((prev) => ({
+          ...prev,
+          [postId]: previousBookmark,
+        }));
+
+        console.error("Error toggling bookmark:", res.error);
+      }
+    } catch (error) {
+      setVotedPosts((prev) => {
+        const newSet = new Set(prev);
+        if (wasBookmarked) {
+          newSet.add(postId);
+        } else {
+          newSet.delete(postId);
+        }
+        return newSet;
+      });
+
+      setVoteCounts((prev) => ({
+        ...prev,
+        [postId]: previousBookmark,
+      }));
+
+      console.error("Error toggling bookmark:", error);
     }
   };
 
@@ -206,6 +308,9 @@ const Posts = () => {
       {posts.map((post) => {
         const isVoted = votedPosts.has(post.id);
         const voteCount = voteCounts[post.id] ?? post._count.votes;
+
+        const isBookmarked = bookmarkedPosts.has(post.id);
+        const bookmarkCount = bookmarkCounts[post.id] ?? post._count.bookmarks;
 
         return (
           <div
@@ -260,9 +365,11 @@ const Posts = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      router.push(`/${post.user.email?.split("@")[0]}/${post.id}`);
+                      router.push(
+                        `/${post.user.email?.split("@")[0]}/${post.id}`
+                      );
                     }}
-                    className="flex items-center gap-2 rounded-full hover:text-blue-500 transition-colors group"
+                    className="flex items-center gap-2 rounded-full hover:text-blue-700 transition-colors group"
                   >
                     <FaRegComment
                       size={18}
@@ -276,7 +383,7 @@ const Posts = () => {
                   <button
                     onClick={(e) => handleVote(e, post.id)}
                     className={`flex items-center gap-2 rounded-full transition-colors group ${
-                      isVoted ? "text-red-500" : "hover:text-red-500"
+                      isVoted ? "text-red-700" : "hover:text-red-700"
                     }`}
                   >
                     {isVoted ? (
@@ -295,13 +402,24 @@ const Posts = () => {
                     )}
                   </button>
 
-                  <button className="flex items-center gap-2 rounded-full hover:bg-green-500/10 hover:text-green-500 transition-colors group">
-                    <BiBookmark
-                      size={18}
-                      className="group-hover:scale-110 transition-transform"
-                    />
-                    {post._count.bookmarks > 0 && (
-                      <span className="text-sm">{post._count.bookmarks}</span>
+                  <button onClick={(e) => handleBookmark(e, post.id)} 
+                  className={`flex items-center gap-2 rounded-full transition-colors group ${
+                      isBookmarked ? "text-emerald-500" : "hover:text-emerald-500"
+                    }`}
+                  >
+                    {isBookmarked ? (
+                      <FaBookmark
+                        size={18}
+                        className="group-hover:scale-110 transition-transform"
+                      />
+                    ) : (
+                      <FaRegBookmark
+                        size={18}
+                        className="group-hover:scale-110 transition-transform"
+                      />
+                    )}
+                    {bookmarkCount > 0 && (
+                      <span className="text-sm">{bookmarkCount}</span>
                     )}
                   </button>
                 </div>

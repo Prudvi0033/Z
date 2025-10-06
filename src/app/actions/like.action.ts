@@ -44,7 +44,7 @@ export const toogleLike = async (postId: string) => {
       });
 
       return {
-        success: true, // Fixed typo - was "sucess"
+        success: true, 
         message: "Vote Removed",
         isVoted: false,
         voteCount,
@@ -133,6 +133,7 @@ export const getLikedPostsForUser = async () => {
                 id: true,
                 name: true,
                 image: true,
+                email: true
               },
             },
           },
