@@ -5,7 +5,6 @@ import { FaArrowLeft } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { formatPostDate } from "../lib/DateFormatter";
 import Image from "next/image";
-import { AiOutlineHeart } from "react-icons/ai";
 import { toast } from "sonner";
 import { getUserBookmarks } from "../actions/bookmark.action";
 import { Bookmark } from "lucide-react";

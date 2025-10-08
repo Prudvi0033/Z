@@ -26,12 +26,18 @@ interface Post {
 
 interface Notification {
   id: string;
-  type: "LIKE" | "FOLLOW";
+  type: "LIKE" | "FOLLOW" | "COMMENT";
   isRead: boolean;
   createdAt: Date;
-  triggeredBy: User;
+  triggeredBy: User | null; 
   post?: Post | null;
+  comment?: {
+    id: string;
+    description: string;
+  } | null;
 }
+
+
 
 const NotificationSkeleton = () => (
   <div className="w-full border-b border-neutral-800 p-4 bg-neutral-900 animate-pulse">
@@ -155,7 +161,7 @@ const Notifications = () => {
             No notifications yet
           </h3>
           <p className="text-neutral-500 text-center">
-            When someone likes or follows you, you'll see it here
+            {`When someone likes or follows you, you'll see it here`}
           </p>
         </div>
       )}

@@ -4,13 +4,7 @@ import React, { useEffect, useState } from "react";
 import { getUserProfile, UserProfile } from "../actions/profile.action";
 import Image from "next/image";
 import {MdOutlineLink } from "react-icons/md";
-import { SlCalender } from "react-icons/sl";
-
-import { useRouter } from "next/navigation";
-import { Space_Grotesk } from "next/font/google";
-import { IoIosLink } from "react-icons/io";
 import { CalendarRange } from "lucide-react";
-const roboto = Space_Grotesk({ subsets: ["latin"] });
 
 
 const bannerImages = [
