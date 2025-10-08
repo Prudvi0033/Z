@@ -1,12 +1,9 @@
 "use client";
-import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { HiHome } from "react-icons/hi2";
 import { IoNotifications } from "react-icons/io5";
 import { PiBookmarkSimple } from "react-icons/pi";
 import { RiUser3Fill } from "react-icons/ri";
 import { useRouter, usePathname } from "next/navigation";
-import { PersonStanding } from "lucide-react";
 import { authClient } from "../lib/auth-client";
 import { FaCookie } from "react-icons/fa";
 import { GoHome } from "react-icons/go";
@@ -62,8 +59,8 @@ const Navbar = () => {
   useEffect(() => {
     const loadSession = async () => {
       const result = await authClient.getSession();
-      if ("data" in result && result.data) {
-        setSession(result.data);
+      if (result.data?.session) {
+        setSession(result.data.session);
       } else {
         setSession(null);
       }
@@ -73,11 +70,11 @@ const Navbar = () => {
 
   const handleSignIn = async () => {
     try {
-      await authClient.signIn({ provider: "google" });
-      const result = await authClient.getSession();
-      if ("data" in result && result.data) {
-        setSession(result.data);
-      }
+      // Fixed: Use signIn.social instead of signIn
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/", // Redirect to home after successful sign in
+      });
     } catch (err) {
       console.error("SignIn error:", err);
     }
