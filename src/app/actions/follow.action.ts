@@ -82,8 +82,8 @@ export const toggleFollow = async (userId: string) => {
     const existingFollow = await prisma.follow.findUnique({
       where: {
         followerId_followingId: {
-          followerId: session.user.id,    // YOU are the follower
-          followingId: userId,             // THEY are being followed
+          followerId: session.user.id,    
+          followingId: userId,             
         },
       },
     });
@@ -102,10 +102,19 @@ export const toggleFollow = async (userId: string) => {
     } else {
       await prisma.follow.create({
         data: {
-          followerId: session.user.id,    // YOU are following
-          followingId: userId,             // THEM
+          followerId: session.user.id,    
+          followingId: userId,             
         },
       });
+
+      await prisma.notification.create({
+        data: {
+          type: "FOLLOW",
+          userId: session.user.id,
+          triggeredById: userId,
+          isRead: false
+        }
+      })
 
       return {
         success: true,

@@ -8,6 +8,7 @@ import Image from "next/image";
 import { AiOutlineHeart } from "react-icons/ai";
 import { toast } from "sonner";
 import { getUserBookmarks } from "../actions/bookmark.action";
+import { Bookmark } from "lucide-react";
 
 const inter = Space_Grotesk({ subsets: ["latin"] });
 
@@ -112,12 +113,12 @@ const Page = () => {
       {/* Empty state */}
       {!loading && posts.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 px-4">
-          <AiOutlineHeart className="w-16 h-16 text-neutral-600 mb-4" />
+          <Bookmark className="w-16 h-16 text-neutral-600 mb-4" />
           <h3 className="text-white text-xl font-semibold mb-2">
-            No liked posts yet
+            No Bookmarked posts yet
           </h3>
           <p className="text-neutral-500 text-center">
-            Posts you like will appear here
+            Posts you bookmark will appear here
           </p>
         </div>
       )}

@@ -10,6 +10,10 @@ import { GoHome } from "react-icons/go";
 import { motion } from "framer-motion";
 import { Bitcount_Single, Space_Grotesk } from "next/font/google";
 import { TextHoverEffect } from "@/components/ui/text-hover-effect";
+import {
+  getUnreadNotificationCount,
+  markAllnotificationsAsRead,
+} from "../actions/notification.action";
 
 // Add these interfaces
 interface Session {
@@ -55,25 +59,41 @@ const Navbar = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [session, setSession] = useState<Session | null>(null);
+  const [notificationCount, setNotificationCount] = useState<
+    number | undefined
+  >(0);
 
   useEffect(() => {
     const loadSession = async () => {
       const result = await authClient.getSession();
       if (result.data?.session) {
+        //@ts-ignore
         setSession(result.data.session);
       } else {
         setSession(null);
       }
     };
+
+    const handleNotificationCount = async () => {
+      try {
+        const res = await getUnreadNotificationCount();
+        if (res.success) {
+          setNotificationCount(res.unreadNotificationCount);
+        }
+      } catch (error) {
+        console.log("Error in notification count");
+      }
+    };
     loadSession();
+
+    handleNotificationCount();
   }, []);
 
   const handleSignIn = async () => {
     try {
-      // Fixed: Use signIn.social instead of signIn
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/", // Redirect to home after successful sign in
+        callbackURL: "/",
       });
     } catch (err) {
       console.error("SignIn error:", err);
@@ -125,18 +145,50 @@ const Navbar = () => {
           {/* Navigation */}
           {NavbarItems.map((item) => {
             const isActive = pathname === item.ref;
+
+            const showBadge =
+              item.title === "Notifications" &&
+              typeof notificationCount === "number" &&
+              notificationCount > 0;
+
             return (
               <div
                 key={item.title}
-                onClick={() => router.push(item.ref)}
-                className={`flex items-center gap-x-5 cursor-pointer py-3 px-6 w-full rounded-lg font-medium text-lg mb-2 transition-colors duration-300
-                  ${
-                    isActive
-                      ? "bg-white text-black"
-                      : "text-white hover:bg-white/10"
-                  }`}
+                onClick={async () => {
+                  try {
+                    if (item.title === "Notifications") {
+                      // 👇 Optimistic UI update
+                      setNotificationCount(0);
+
+                      // Call server in background (no need to wait)
+                      markAllnotificationsAsRead().catch((error) => {
+                        console.error(
+                          "Failed to mark notifications as read",
+                          error
+                        );
+                      });
+                    }
+
+                    router.push(item.ref);
+                  } catch (error) {
+                    console.error("Error in navigation:", error);
+                  }
+                }}
+                className={`relative flex items-center gap-x-5 cursor-pointer py-3 px-6 w-full rounded-lg font-medium text-lg mb-2 transition-colors duration-300
+        ${isActive ? "bg-white text-black" : "text-white hover:bg-white/10"}`}
               >
-                <div>{item.icon}</div>
+                {/* Icon + badge container */}
+                <div className="relative">
+                  {item.icon}
+
+                  {/* Notification Badge */}
+                  {showBadge && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                      {notificationCount > 9 ? "9+" : notificationCount}
+                    </span>
+                  )}
+                </div>
+
                 <div>{item.title}</div>
               </div>
             );

@@ -44,7 +44,7 @@ export const toogleLike = async (postId: string) => {
       });
 
       return {
-        success: true, 
+        success: true,
         message: "Vote Removed",
         isVoted: false,
         voteCount,
@@ -57,6 +57,18 @@ export const toogleLike = async (postId: string) => {
           postId: postId,
         },
       });
+
+      if (post.userId !== session.user.id) {
+        await prisma.notification.create({
+          data: {
+            type: "LIKE",
+            userId: post.userId,
+            triggeredById: session.user.id,
+            postId: postId,
+            isRead: false,
+          },
+        });
+      }
 
       const voteCount = await prisma.vote.count({
         where: { postId: postId },
@@ -117,10 +129,10 @@ export const getLikedPostsForUser = async () => {
 
   try {
     const posts = await prisma.vote.findMany({
-      where: { 
+      where: {
         userId: session.user.id,
-        type: "UPVOTE"
-    },
+        type: "UPVOTE",
+      },
       include: {
         post: {
           select: {
@@ -133,7 +145,7 @@ export const getLikedPostsForUser = async () => {
                 id: true,
                 name: true,
                 image: true,
-                email: true
+                email: true,
               },
             },
           },
@@ -142,9 +154,9 @@ export const getLikedPostsForUser = async () => {
       orderBy: { createdAt: "desc" },
     });
 
-    const likedPosts = posts.map((vote) => vote.post)
+    const likedPosts = posts.map((vote) => vote.post);
 
-    return {sucess : true, likedPosts}
+    return { sucess: true, likedPosts };
   } catch (error) {
     console.error("Error fetching liked posts:", error);
     return { success: false, error: "Failed to fetch liked posts" };
