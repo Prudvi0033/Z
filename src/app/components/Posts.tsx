@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getAllPosts } from "../actions/post.action";
 import Image from "next/image";
-import { BiBookmark } from "react-icons/bi";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { FaBookmark, FaRegBookmark, FaRegComment } from "react-icons/fa";
 import { useRouter } from "next/navigation";
@@ -10,6 +9,9 @@ import {
   getUserBookmarkedPosts,
   toogleBookmark,
 } from "../actions/bookmark.action";
+import { authClient } from "../lib/auth-client";
+import { Session } from "better-auth";
+import { SignupModal } from "./SignupModal";
 
 interface User {
   id: string;
@@ -71,10 +73,22 @@ const Posts = () => {
   const [bookmarkCounts, setBookmarkCounts] = useState<Record<string, number>>(
     {}
   );
+  const [session, setSession] = useState<Session | null>(null);
+  const [signUpmodal, setSignupmodal] = useState(false)
 
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
+
+      const fetchSession = async () => {
+            const result = await authClient.getSession();
+            if (result?.data?.session) {
+              setSession(result.data.session);
+            } else {
+              setSession(null);
+            }
+          };
+          fetchSession();
       const [postsRes, likedRes, bookmarkRes] = await Promise.all([
         getAllPosts(),
         getUserLikedPosts(),
@@ -114,7 +128,12 @@ const Posts = () => {
   }, []);
 
   const handleVote = async (e: React.MouseEvent, postId: string) => {
-    e.stopPropagation(); // Prevent navigation to post detail
+    e.stopPropagation();
+    
+    if (!session) {
+      setSignupmodal(true);
+      return;
+    }
 
     // Store current state for rollback if needed
     const wasVoted = votedPosts.has(postId);
@@ -201,6 +220,11 @@ const Posts = () => {
   const handleBookmark = async (e: React.MouseEvent, postId: string) => {
     e.stopPropagation();
 
+    if (!session) {
+      setSignupmodal(true);
+      return;
+    }
+
     const wasBookmarked = bookmarkedPosts.has(postId);
     const previousBookmark = bookmarkCounts[postId] ?? 0;
 
@@ -277,6 +301,17 @@ const Posts = () => {
     }
   };
 
+  const handleSignup = async () => {
+      try {
+        await authClient.signIn.social({
+          provider: "google",
+          callbackURL: "/",
+        });
+      } catch (err) {
+        console.error("SignIn error:", err);
+      }
+    };
+
   function formatPostDate(date: Date) {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -305,6 +340,9 @@ const Posts = () => {
 
   return (
     <div className="space-y-0">
+      {signUpmodal && (
+        <SignupModal open={signUpmodal} onSignup={handleSignup} onClose={() => setSignupmodal(false)} />
+      )}
       {posts.map((post) => {
         const isVoted = votedPosts.has(post.id);
         const voteCount = voteCounts[post.id] ?? post._count.votes;
@@ -315,7 +353,12 @@ const Posts = () => {
         return (
           <div
             onClick={() => {
-              router.push(`/${post.user.email?.split("@")[0]}/${post.id}`);
+              if(!session){
+                setSignupmodal(true)
+              }
+              else {
+                router.push(`/${post.user.email?.split("@")[0]}/${post.id}`);
+              }
             }}
             key={post.id}
             className="w-full border-b border-neutral-800 p-4 bg-neutral-900 hover:bg-neutral-800/50 transition-colors cursor-pointer"
@@ -364,6 +407,10 @@ const Posts = () => {
                 <div className="flex items-center justify-between text-neutral-500 max-w-md pt-2">
                   <button
                     onClick={(e) => {
+                      if (!session) {
+                        setSignupmodal(true);
+                        return;
+                      }
                       e.stopPropagation();
                       router.push(
                         `/${post.user.email?.split("@")[0]}/${post.id}`
@@ -381,7 +428,13 @@ const Posts = () => {
                   </button>
 
                   <button
-                    onClick={(e) => handleVote(e, post.id)}
+                    onClick={(e) => {
+                      if (!session) {
+                        setSignupmodal(true);
+                        return;
+                      }
+                      handleVote(e, post.id);
+                    }}
                     className={`flex items-center gap-2 rounded-full transition-colors group ${
                       isVoted ? "text-red-700" : "hover:text-red-700"
                     }`}
@@ -402,8 +455,15 @@ const Posts = () => {
                     )}
                   </button>
 
-                  <button onClick={(e) => handleBookmark(e, post.id)} 
-                  className={`flex items-center gap-2 rounded-full transition-colors group ${
+                  <button 
+                    onClick={(e) => {
+                      if (!session) {
+                        setSignupmodal(true);
+                        return;
+                      }
+                      handleBookmark(e, post.id);
+                    }}
+                    className={`flex items-center gap-2 rounded-full transition-colors group ${
                       isBookmarked ? "text-emerald-500" : "hover:text-emerald-500"
                     }`}
                   >

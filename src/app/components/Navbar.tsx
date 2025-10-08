@@ -14,16 +14,9 @@ import {
   getUnreadNotificationCount,
   markAllnotificationsAsRead,
 } from "../actions/notification.action";
+import { SignupModal } from "./SignupModal";
+import { Session } from "better-auth";
 
-// Add these interfaces
-interface Session {
-  user?: {
-    name?: string;
-    email?: string;
-    image?: string;
-  };
-  expires?: string;
-}
 
 interface NavItem {
   title: string;
@@ -62,12 +55,12 @@ const Navbar = () => {
   const [notificationCount, setNotificationCount] = useState<
     number | undefined
   >(0);
+  const [showSignupModal, setShowsignupModal] = useState(false);
 
   useEffect(() => {
     const loadSession = async () => {
       const result = await authClient.getSession();
       if (result.data?.session) {
-        //@ts-ignore
         setSession(result.data.session);
       } else {
         setSession(null);
@@ -81,7 +74,7 @@ const Navbar = () => {
           setNotificationCount(res.unreadNotificationCount);
         }
       } catch (error) {
-        console.log("Error in notification count");
+        console.log("Error in notification count", error);
       }
     };
     loadSession();
@@ -111,115 +104,127 @@ const Navbar = () => {
   };
 
   return (
-    <div
-      className={`w-[26rem] h-screen ${roboto.className} selection:bg-neutral-300/40 bg-neutral-900`}
-    >
-      <div className="flex items-center justify-end w-full px-12 py-6">
-        <div className="flex flex-col items-end w-fit">
-          {/* Logo */}
-          <motion.div
-            onClick={() => {
-              router.push("/");
-            }}
-            className={`${bit.className} p-4 mb-20 text-white text-4xl cursor-pointer flex w-full items-start`}
-            style={{
-              backgroundImage:
-                "linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.3) 100%)",
-              backgroundSize: "200% 100%",
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              color: "transparent",
-            }}
-            animate={{
-              backgroundPosition: ["200% 0", "-200% 0"],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          >
-            Alpha
-          </motion.div>
+    <>
+      {showSignupModal && (
+        <SignupModal
+          open={showSignupModal}
+          onSignup={handleSignIn}
+          onClose={() => setShowsignupModal(false)}
+        />
+      )}
+      <div
+        className={`w-[26rem] h-screen ${roboto.className} selection:bg-neutral-300/40 bg-neutral-900`}
+      >
+        <div className="flex items-center justify-end w-full px-12 py-6">
+          <div className="flex flex-col items-end w-fit">
+            {/* Logo */}
+            <motion.div
+              onClick={() => {
+                router.push("/");
+              }}
+              className={`${bit.className} p-4 mb-20 text-white text-4xl cursor-pointer flex w-full items-start`}
+              style={{
+                backgroundImage:
+                  "linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.3) 100%)",
+                backgroundSize: "200% 100%",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                color: "transparent",
+              }}
+              animate={{
+                backgroundPosition: ["200% 0", "-200% 0"],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            >
+              Alpha
+            </motion.div>
 
-          {/* Navigation */}
-          {NavbarItems.map((item) => {
-            const isActive = pathname === item.ref;
+            {/* Navigation */}
+            {NavbarItems.map((item) => {
+              const isActive = pathname === item.ref;
 
-            const showBadge =
-              item.title === "Notifications" &&
-              typeof notificationCount === "number" &&
-              notificationCount > 0;
+              const showBadge =
+                item.title === "Notifications" &&
+                typeof notificationCount === "number" &&
+                notificationCount > 0;
 
-            return (
-              <div
-                key={item.title}
-                onClick={async () => {
-                  try {
-                    if (item.title === "Notifications") {
-                      // 👇 Optimistic UI update
-                      setNotificationCount(0);
+              return (
+                <div
+                  key={item.title}
+                  onClick={async () => {
+                    try {
+                      if (!session) {
+                        setShowsignupModal(true);
+                        return;
+                      }
 
-                      // Call server in background (no need to wait)
-                      markAllnotificationsAsRead().catch((error) => {
-                        console.error(
-                          "Failed to mark notifications as read",
-                          error
-                        );
-                      });
+                      if (item.title === "Notifications") {
+                        setNotificationCount(0);
+
+                        markAllnotificationsAsRead().catch((error) => {
+                          console.error(
+                            "Failed to mark notifications as read",
+                            error
+                          );
+                        });
+                      }
+
+                      router.push(item.ref);
+                    } catch (error) {
+                      console.error("Error in navigation:", error);
                     }
-
-                    router.push(item.ref);
-                  } catch (error) {
-                    console.error("Error in navigation:", error);
-                  }
-                }}
-                className={`relative flex items-center gap-x-5 cursor-pointer py-3 px-6 w-full rounded-lg font-medium text-lg mb-2 transition-colors duration-300
+                  }}
+                  className={`relative flex items-center gap-x-5 cursor-pointer py-3 px-6 w-full rounded-lg font-medium text-lg mb-2 transition-colors duration-300
         ${isActive ? "bg-white text-black" : "text-white hover:bg-white/10"}`}
-              >
-                {/* Icon + badge container */}
-                <div className="relative">
-                  {item.icon}
+                >
+                  {/* Icon + badge container */}
+                  <div className="relative">
+                    {item.icon}
 
-                  {/* Notification Badge */}
-                  {showBadge && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                      {notificationCount > 9 ? "9+" : notificationCount}
-                    </span>
-                  )}
+                    {/* Notification Badge */}
+                    {showBadge && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                        {notificationCount > 9 ? "9+" : notificationCount}
+                      </span>
+                    )}
+                  </div>
+
+                  <div>{item.title}</div>
                 </div>
+              );
+            })}
 
-                <div>{item.title}</div>
+            {/* Auth Button */}
+            <div className="mt-32 relative">
+              {/* Background TextHoverEffect */}
+              <div className="w-full h-fit absolute bottom-8 px-2">
+                <TextHoverEffect text="Alpha" duration={0.3} />
               </div>
-            );
-          })}
 
-          {/* Auth Button */}
-          <div className="mt-32 relative">
-            {/* Background TextHoverEffect */}
-            <div className="w-full h-fit absolute bottom-8 px-2">
-              <TextHoverEffect text="Alpha" duration={0.3} />
+              {session ? (
+                <button
+                  onClick={handleSignOut}
+                  className="py-3 px-18 rounded-xl cursor-pointer bg-gradient-to-br from-neutral-100 to-white text-black font-semibold transition-all duration-200 shadow-[6px_6px_12px_rgba(0,0,0,0.4),-6px_-6px_12px_rgba(255,255,255,0.05)] active:scale-95 relative z-10"
+                >
+                  Sign Out
+                </button>
+              ) : (
+                <button
+                  onClick={handleSignIn}
+                  className="py-3 px-18 rounded-xl cursor-pointer bg-gradient-to-br from-neutral-100 to-white text-black font-semibold transition-all duration-200 shadow-[6px_6px_12px_rgba(0,0,0,0.4),-6px_-6px_12px_rgba(255,255,255,0.05)] active:scale-95 relative z-10"
+                >
+                  Sign In
+                </button>
+              )}
             </div>
-
-            {session ? (
-              <button
-                onClick={handleSignOut}
-                className="py-3 px-18 rounded-xl cursor-pointer bg-gradient-to-br from-neutral-100 to-white text-black font-semibold transition-all duration-200 shadow-[6px_6px_12px_rgba(0,0,0,0.4),-6px_-6px_12px_rgba(255,255,255,0.05)] active:scale-95 relative z-10"
-              >
-                Sign Out
-              </button>
-            ) : (
-              <button
-                onClick={handleSignIn}
-                className="py-3 px-18 rounded-xl cursor-pointer bg-gradient-to-br from-neutral-100 to-white text-black font-semibold transition-all duration-200 shadow-[6px_6px_12px_rgba(0,0,0,0.4),-6px_-6px_12px_rgba(255,255,255,0.05)] active:scale-95 relative z-10"
-              >
-                Sign In
-              </button>
-            )}
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
