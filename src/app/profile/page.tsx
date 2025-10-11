@@ -11,7 +11,7 @@ const Page = () => {
   const [activeTab, setActiveTab] = useState("posts");
   return (
     <div
-      className={`flex flex-col w-[42rem] p-6 h-screen border-r border-l border-neutral-700 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-600 scrollbar-track-transparent hover:scrollbar-thumb-neutral-500 ${roboto.className}`}
+      className={`flex flex-col w-[42rem] selection:bg-neutral-300/40 p-6 h-screen border-r border-l border-neutral-700 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-600 scrollbar-track-transparent hover:scrollbar-thumb-neutral-500 ${roboto.className}`}
     >
       <Profile />
 
