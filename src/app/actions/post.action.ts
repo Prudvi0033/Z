@@ -33,7 +33,7 @@ export const createPost = async (message: string, postImage?: string) => {
       },
     });
 
-    return { sucess: true, post };
+    return { success: true, post }; // ✅ Fixed typo
   } catch (error) {
     console.error("Error creating post:", error);
     return { success: false, error: "Failed to create post" };
@@ -57,7 +57,7 @@ export const deletePost = async (postId: string) => {
     });
 
     if (!userPost) {
-      return { sucess: false, error: "Post not found" };
+      return { success: false, error: "Post not found" }; // ✅ Fixed typo
     }
 
     if (userPost.userId !== session.user.id) {
@@ -111,7 +111,7 @@ export const getUserPosts = async () => {
         createdAt: "desc",
       },
     });
-    return { sucess: true, userPosts };
+    return { success: true, userPosts }; // ✅ Fixed typo
   } catch (error) {
     console.error("Error fetching user posts:", error);
     return { success: false, error: "Failed to fetch posts" };
@@ -190,4 +190,3 @@ export const getPostById = async (postId: string) => {
     return { success: false, error: "Failed to fetch post" };
   }
 };
-

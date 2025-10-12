@@ -35,6 +35,10 @@ interface PostWithRelations {
   };
 }
 
+interface RefreshTriggerProps {
+  refreshTrigger : number
+}
+
 const PostSkeleton = () => (
   <div className="w-full border-b border-neutral-800 p-4 bg-neutral-900 animate-pulse">
     <div className="flex items-start gap-3">
@@ -60,7 +64,7 @@ const PostSkeleton = () => (
   </div>
 );
 
-const Posts = () => {
+const Posts = ({refreshTrigger} : RefreshTriggerProps) => {
   const router = useRouter();
   const [posts, setPosts] = useState<PostWithRelations[]>([]);
   const [loading, setLoading] = useState(false);
@@ -125,7 +129,7 @@ const Posts = () => {
       setLoading(false);
     };
     fetchPosts();
-  }, []);
+  }, [refreshTrigger]);
 
   const handleVote = async (e: React.MouseEvent, postId: string) => {
     e.stopPropagation();
