@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { getUserPosts } from "../actions/post.action";
+import { deletePost, getUserPosts } from "../actions/post.action";
 import { toast } from "sonner";
 import Image from "next/image";
 import { formatPostDate } from "../lib/DateFormatter";
 import { IoMdGrid } from "react-icons/io";
 import { useRouter } from "next/navigation";
+import { RiDeleteBin6Line } from "react-icons/ri";
+import { Loader2 } from "lucide-react";
 
 interface User {
   id: string;
@@ -64,13 +66,14 @@ const UserPosts = () => {
   const router = useRouter();
   const [posts, setPosts] = useState<PostWithRelations[]>([]);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserPosts = async () => {
       setLoading(true);
       try {
         const res = await getUserPosts();
-        if (res.sucess) {
+        if (res.success && res.userPosts) {
           setPosts(res.userPosts);
         } else {
           toast("Error in fetching user posts");
@@ -85,6 +88,25 @@ const UserPosts = () => {
 
     fetchUserPosts();
   }, []);
+
+  const handleDeletePost = async (e: React.MouseEvent, postId : string) => {
+    e.stopPropagation()
+    setDeletingId(postId)
+    try {
+      const res = await deletePost(postId)
+      if(res.success){
+        setLoading(false)
+        toast("Post deleted")
+
+        setPosts((prev) => prev.filter((p) => p.id !== postId))
+      }
+    } catch (error) {
+      console.log("Error in deleting post", error);
+    }
+    finally{
+      setLoading(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -125,22 +147,28 @@ const UserPosts = () => {
               alt={post.user?.name || "User"}
               width={40}
               height={40}
-              className="rounded-full flex-shrink-0"
+              className="rounded-full flex-shrink-0 mt-2"
             />
 
             <div className="flex-1 min-w-0">
               {/* User info and timestamp */}
               <div className="flex flex-col mb-2">
-                <span className="text-white flex gap-x-2 font-semibold text-[14px]">
-                  {post.user?.name || "Anonymous"}
+                <div className="w-full flex justify-between items-center">
+                  <span className="text-white flex gap-x-2 font-semibold text-[14px]">
+                    {post.user?.name || "Anonymous"}
 
-                  <div className="flex gap-2">
-                    <span className="text-neutral-500 text-[14px]">·</span>
-                    <span className="text-neutral-500 text-[14px]">
-                      {formatPostDate(new Date(post.createdAt))}
-                    </span>
+                    <div className="flex gap-2">
+                      <span className="text-neutral-500 text-[14px]">·</span>
+                      <span className="text-neutral-500 text-[14px]">
+                        {formatPostDate(new Date(post.createdAt))}
+                      </span>
+                    </div>
+                  </span>
+
+                  <div onClick={(e) => handleDeletePost(e,post.id)} className="hover:bg-neutral-700 p-1.5 rounded-sm text-neutral-500 hover:text-red-700">
+                    {deletingId === post.id ? <Loader2 size={16} className="animate-spin"/> : <RiDeleteBin6Line size={16} className="" />}
                   </div>
-                </span>
+                </div>
                 <span className="text-neutral-500 text-[14px]">
                   @{post.user.email?.split("@")[0] || "anonymous"}
                 </span>

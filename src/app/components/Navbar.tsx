@@ -17,7 +17,6 @@ import {
 import { SignupModal } from "./SignupModal";
 import { Session } from "better-auth";
 
-
 interface NavItem {
   title: string;
   icon: React.ReactNode;
@@ -157,7 +156,7 @@ const Navbar = () => {
                   key={item.title}
                   onClick={async () => {
                     try {
-                      if (!session) {
+                      if (!session && item.title !== "Home") {
                         setShowsignupModal(true);
                         return;
                       }

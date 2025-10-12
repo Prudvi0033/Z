@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { getUserProfile, updateProfile, UserProfile } from "../actions/profile.action";
 import Image from "next/image";
 import { MdOutlineLink } from "react-icons/md";
-import { CalendarRange, Loader2, X } from "lucide-react";
+import { CalendarRange, Loader2} from "lucide-react";
 import { TiLocationOutline } from "react-icons/ti";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
