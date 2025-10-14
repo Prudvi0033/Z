@@ -89,24 +89,23 @@ const UserPosts = () => {
     fetchUserPosts();
   }, []);
 
-  const handleDeletePost = async (e: React.MouseEvent, postId : string) => {
-    e.stopPropagation()
-    setDeletingId(postId)
+  const handleDeletePost = async (e: React.MouseEvent, postId: string) => {
+    e.stopPropagation();
+    setDeletingId(postId);
     try {
-      const res = await deletePost(postId)
-      if(res.success){
-        setLoading(false)
-        toast("Post deleted")
+      const res = await deletePost(postId);
+      if (res.success) {
+        setLoading(false);
+        toast("Post deleted");
 
-        setPosts((prev) => prev.filter((p) => p.id !== postId))
+        setPosts((prev) => prev.filter((p) => p.id !== postId));
       }
     } catch (error) {
       console.log("Error in deleting post", error);
+    } finally {
+      setLoading(false);
     }
-    finally{
-      setLoading(false)
-    }
-  }
+  };
 
   if (loading) {
     return (
@@ -165,8 +164,15 @@ const UserPosts = () => {
                     </div>
                   </span>
 
-                  <div onClick={(e) => handleDeletePost(e,post.id)} className="hover:bg-neutral-700 p-1.5 rounded-sm text-neutral-500 hover:text-red-700">
-                    {deletingId === post.id ? <Loader2 size={16} className="animate-spin"/> : <RiDeleteBin6Line size={16} className="" />}
+                  <div
+                    onClick={(e) => handleDeletePost(e, post.id)}
+                    className="hover:bg-neutral-700 p-1.5 rounded-sm text-neutral-500 hover:text-red-700"
+                  >
+                    {deletingId === post.id ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <RiDeleteBin6Line size={16} className="" />
+                    )}
                   </div>
                 </div>
                 <span className="text-neutral-500 text-[14px]">
@@ -185,8 +191,8 @@ const UserPosts = () => {
                   <Image
                     src={post.postImage}
                     alt="Post image"
-                    width={30}
-                    height={30}
+                    width={500}
+                    height={500}
                     className="w-full h-auto"
                   />
                 </div>

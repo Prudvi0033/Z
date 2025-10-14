@@ -401,8 +401,8 @@ const Posts = ({refreshTrigger} : RefreshTriggerProps) => {
                     <Image
                       src={post.postImage}
                       alt="Post image"
-                      width={30}
-                      height={30}
+                      width={500}
+                      height={500}
                       className="w-full h-auto"
                     />
                   </div>
