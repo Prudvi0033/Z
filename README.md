@@ -1,36 +1,139 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Alpha
+
+**Alpha** is a modern, minimalist social media platform inspired by **Twitter (X)** — built for seamless expression and meaningful connections.  
+With a sleek dark interface and smooth user experience, Alpha lets users post thoughts, share media, and engage with others in real time.
+
+---
+
+## Features
+
+- **Create Posts** — Share text updates, images, or GIFs.  
+- **Like & Bookmark** — Engage with posts and save what matters.  
+- **Follow System** — Follow other users to personalize your feed.  
+- **Media Uploads** — Support for image and GIF attachments.  
+- **Dark Theme** — Sleek, elegant black design focused on clarity and comfort.  
+- **Authentication** — Secure login and session management with **Better Auth**.  
+- **Server Actions** — Efficient server-side CRUD operations.  
+- **Type Safety** — Fully written in **TypeScript** for robust and predictable code.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|-------------|
+| **Frontend** | Next.js 14, TypeScript, Tailwind CSS |
+| **Backend** | PostgreSQL, Prisma ORM |
+| **Authentication** | Better Auth |
+| **Server Logic** | Next.js Server Actions |
+
+---
+
+## 🧭 Architecture Overview
+
+Alpha follows a **modern full-stack architecture** leveraging **Next.js App Router** and **Server Actions** for smooth integration between frontend and backend logic.  
+Data persistence is managed through **PostgreSQL** and **Prisma ORM**, ensuring type-safe, efficient database communication.
+
+Next.js (Frontend + Server Actions)
+│
+▼
+Prisma ORM
+│
+▼
+PostgreSQL Database
+
+
+---
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the Repository
+git clone https://github.com/your-username/alpha.git
+cd alpha
 
-```bash
+2. Install Dependencies
+npm install
+
+3. Set Up Environment Variables
+
+Create a .env file in the root directory and configure the following:
+
+DATABASE_URL=your_postgres_connection_string
+NEXTAUTH_SECRET=your_secret_key
+
+4. Run Prisma Migrations
+npx prisma migrate dev
+
+5. Start the Development Server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Your app should now be running at http://localhost:3000
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Folder Structure
+src/
+ ├── app/                 # Next.js app directory
+ │    ├── components/     # Reusable UI components
+ │    ├── actions/        # Server actions for CRUD
+ │    ├── api/            # API routes
+ │    └── pages/          # App pages
+ ├── lib/                 # Utilities and configuration
+ ├── prisma/              # Prisma schema and migrations
+ └── styles/              # Global styles
 
-## Learn More
+Core Concepts
+🔸 Server Actions
 
-To learn more about Next.js, take a look at the following resources:
+Alpha uses Next.js Server Actions to perform CRUD operations directly on the server, improving performance and reducing API complexity.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+🔸 Prisma ORM
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Handles all database interactions with a fully type-safe interface for models like User, Post, Follow, and Bookmark.
 
-## Deploy on Vercel
+🔸 Authentication
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+User sessions and security are managed using Better Auth, providing a smooth and reliable login experience.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## UI & Design
+
+Clean, minimalist interface with a sleek black theme
+
+Smooth transitions and responsive layouts
+
+Tailwind CSS for fast, consistent styling
+
+Mobile-friendly and accessibility-focused
+
+## Contributing
+
+Contributions, issues, and feature requests are welcome!
+Feel free to open a pull request or start a discussion.
+
+Steps:
+
+Fork the repository
+
+Create a new branch (feature/your-feature)
+
+Commit your changes
+
+Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License — you’re free to use, modify, and distribute it.
+
+Acknowledgments
+
+Special thanks to:
+
+Next.js for its powerful full-stack framework
+
+Prisma for elegant database management
+
+Tailwind CSS for clean and fast UI development
+
+Better Auth for simple, secure authentication
+
+Built with ❤️ and TypeScript by G. Prudvi Raj Varma
+
