@@ -36,7 +36,7 @@ interface PostWithRelations {
 }
 
 interface RefreshTriggerProps {
-  refreshTrigger : number
+  refreshTrigger: number;
 }
 
 const PostSkeleton = () => (
@@ -64,7 +64,7 @@ const PostSkeleton = () => (
   </div>
 );
 
-const Posts = ({refreshTrigger} : RefreshTriggerProps) => {
+const Posts = ({ refreshTrigger }: RefreshTriggerProps) => {
   const router = useRouter();
   const [posts, setPosts] = useState<PostWithRelations[]>([]);
   const [loading, setLoading] = useState(false);
@@ -78,21 +78,21 @@ const Posts = ({refreshTrigger} : RefreshTriggerProps) => {
     {}
   );
   const [session, setSession] = useState<Session | null>(null);
-  const [signUpmodal, setSignupmodal] = useState(false)
+  const [signUpmodal, setSignupmodal] = useState(false);
 
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
 
       const fetchSession = async () => {
-            const result = await authClient.getSession();
-            if (result?.data?.session) {
-              setSession(result.data.session);
-            } else {
-              setSession(null);
-            }
-          };
-          fetchSession();
+        const result = await authClient.getSession();
+        if (result?.data?.session) {
+          setSession(result.data.session);
+        } else {
+          setSession(null);
+        }
+      };
+      fetchSession();
       const [postsRes, likedRes, bookmarkRes] = await Promise.all([
         getAllPosts(),
         getUserLikedPosts(),
@@ -133,7 +133,7 @@ const Posts = ({refreshTrigger} : RefreshTriggerProps) => {
 
   const handleVote = async (e: React.MouseEvent, postId: string) => {
     e.stopPropagation();
-    
+
     if (!session) {
       setSignupmodal(true);
       return;
@@ -306,15 +306,15 @@ const Posts = ({refreshTrigger} : RefreshTriggerProps) => {
   };
 
   const handleSignup = async () => {
-      try {
-        await authClient.signIn.social({
-          provider: "google",
-          callbackURL: "/",
-        });
-      } catch (err) {
-        console.error("SignIn error:", err);
-      }
-    };
+    try {
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      });
+    } catch (err) {
+      console.error("SignIn error:", err);
+    }
+  };
 
   function formatPostDate(date: Date) {
     const now = new Date();
@@ -345,7 +345,11 @@ const Posts = ({refreshTrigger} : RefreshTriggerProps) => {
   return (
     <div className="space-y-0">
       {signUpmodal && (
-        <SignupModal open={signUpmodal} onSignup={handleSignup} onClose={() => setSignupmodal(false)} />
+        <SignupModal
+          open={signUpmodal}
+          onSignup={handleSignup}
+          onClose={() => setSignupmodal(false)}
+        />
       )}
       {posts.map((post) => {
         const isVoted = votedPosts.has(post.id);
@@ -357,10 +361,9 @@ const Posts = ({refreshTrigger} : RefreshTriggerProps) => {
         return (
           <div
             onClick={() => {
-              if(!session){
-                setSignupmodal(true)
-              }
-              else {
+              if (!session) {
+                setSignupmodal(true);
+              } else {
                 router.push(`/${post.user.email?.split("@")[0]}/${post.id}`);
               }
             }}
@@ -368,13 +371,19 @@ const Posts = ({refreshTrigger} : RefreshTriggerProps) => {
             className="w-full border-b border-neutral-800 p-4 bg-neutral-900 hover:bg-neutral-800/50 transition-colors cursor-pointer"
           >
             <div className="flex items-start gap-3">
-              <Image
-                src={post.user?.image || "/default-avatar.png"}
-                alt={post.user?.name || "User"}
-                width={40}
-                height={40}
-                className="rounded-full flex-shrink-0"
-              />
+              {post.user?.image ? (
+                <Image
+                  src={post.user.image}
+                  alt={post.user?.name || "User"}
+                  width={40}
+                  height={40}
+                  className="rounded-full flex-shrink-0"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-neutral-700 text-white flex items-center justify-center flex-shrink-0 font-semibold">
+                  {post.user?.name?.charAt(0).toUpperCase() || "U"}
+                </div>
+              )}
 
               <div className="flex-1 min-w-0">
                 <div className="flex flex-col mb-2">
@@ -459,7 +468,7 @@ const Posts = ({refreshTrigger} : RefreshTriggerProps) => {
                     )}
                   </button>
 
-                  <button 
+                  <button
                     onClick={(e) => {
                       if (!session) {
                         setSignupmodal(true);
@@ -468,7 +477,9 @@ const Posts = ({refreshTrigger} : RefreshTriggerProps) => {
                       handleBookmark(e, post.id);
                     }}
                     className={`flex items-center gap-2 rounded-full transition-colors group ${
-                      isBookmarked ? "text-emerald-500" : "hover:text-emerald-500"
+                      isBookmarked
+                        ? "text-emerald-500"
+                        : "hover:text-emerald-500"
                     }`}
                   >
                     {isBookmarked ? (

@@ -110,8 +110,8 @@ export const toggleFollow = async (userId: string) => {
       await prisma.notification.create({
         data: {
           type: "FOLLOW",
-          userId: session.user.id,
-          triggeredById: userId,
+          userId: userId,
+          triggeredById: session.user.id,
           isRead: false
         }
       })

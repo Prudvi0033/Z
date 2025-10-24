@@ -1,12 +1,21 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getUserProfile, updateProfile, UserProfile } from "../actions/profile.action";
+import {
+  getUserProfile,
+  updateProfile,
+  UserProfile,
+} from "../actions/profile.action";
 import Image from "next/image";
 import { MdOutlineLink } from "react-icons/md";
-import { CalendarRange, Loader2} from "lucide-react";
+import { CalendarRange, Loader2 } from "lucide-react";
 import { TiLocationOutline } from "react-icons/ti";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Space_Grotesk } from "next/font/google";
@@ -18,7 +27,7 @@ const bannerImages = [
   "/banner4.png",
 ];
 
-const space = Space_Grotesk({subsets: ['latin']})
+const space = Space_Grotesk({ subsets: ["latin"] });
 
 const getABannerImage = () => {
   const randomIndex = Math.floor(Math.random() * bannerImages.length);
@@ -137,20 +146,36 @@ export const Profile = () => {
           />
 
           <div className=" absolute left-8 -bottom-10">
-            <Image src={data?.image || ""} alt="profile" width={90} height={90} className="rounded-full" />
+            <div>
+              {data?.image ? (
+                <Image
+                  src={data?.image || ""}
+                  alt="profile"
+                  width={90}
+                  height={90}
+                  className="rounded-full"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-neutral-700 text-white flex items-center justify-center flex-shrink-0 font-semibold">
+                  {data?.name?.charAt(0).toUpperCase() || "U"}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         <div className="flex w-full items-center justify-between mt-12">
           <div className="flex flex-col">
-            <h1 className="text-lg font-semibold text-neutral-100">{data?.name}</h1>
+            <h1 className="text-lg font-semibold text-neutral-100">
+              {data?.name}
+            </h1>
             <p className="text-[13px] text-neutral-500">
               {"@"}
               {data?.email?.split("@")[0]}
             </p>
           </div>
 
-          <div 
+          <div
             onClick={handleEditClick}
             className="text-[13px] text-neutral-300 px-4 py-2 bg-neutral-900 rounded-2xl shadow-[inset_4px_4px_8px_rgba(0,0,0,0.5),inset_-4px_-4px_8px_rgba(255,255,255,0.03)] hover:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.5),inset_-2px_-2px_4px_rgba(255,255,255,0.03)] cursor-pointer transition-all duration-200"
           >
@@ -181,7 +206,9 @@ export const Profile = () => {
 
                 <div className="flex gap-x-1 items-center">
                   <TiLocationOutline className="text-neutral-600" />
-                  <span className="text-neutral-200">{data?.location || "Valhalla"}</span>
+                  <span className="text-neutral-200">
+                    {data?.location || "Valhalla"}
+                  </span>
                 </div>
 
                 <div className="flex gap-x-1 items-center">
@@ -220,12 +247,16 @@ export const Profile = () => {
       </div>
 
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className={`bg-neutral-900 border border-neutral-800 text-neutral-100 max-w-xl ${space.className}`}>
+        <DialogContent
+          className={`bg-neutral-900 border border-neutral-800 text-neutral-100 max-w-xl ${space.className}`}
+        >
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-neutral-100">Edit profile</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-neutral-100">
+              Edit profile
+            </DialogTitle>
             <div className="border w-full border-neutral-800"></div>
           </DialogHeader>
-          
+
           <div className="space-y-5 mt-4">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-[13px] text-neutral-300">
@@ -234,33 +265,45 @@ export const Profile = () => {
               <Input
                 id="name"
                 value={editForm.name}
-                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, name: e.target.value })
+                }
                 className="bg-neutral-800 border-neutral-700 text-neutral-100 focus:border-neutral-600 focus:ring-neutral-600"
                 placeholder="Your name"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-[13px] text-neutral-300">
+              <Label
+                htmlFor="description"
+                className="text-[13px] text-neutral-300"
+              >
                 Bio
               </Label>
               <Input
                 id="description"
                 value={editForm.description}
-                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, description: e.target.value })
+                }
                 className="bg-neutral-800 border-neutral-700 text-neutral-100 focus:border-neutral-600 focus:ring-neutral-600"
                 placeholder="Tell us about yourself"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location" className="text-[13px] text-neutral-300">
+              <Label
+                htmlFor="location"
+                className="text-[13px] text-neutral-300"
+              >
                 Location
               </Label>
               <Input
                 id="location"
                 value={editForm.location}
-                onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, location: e.target.value })
+                }
                 className="bg-neutral-800 border-neutral-700 text-neutral-100 focus:border-neutral-600 focus:ring-neutral-600"
                 placeholder="Where are you based?"
               />
@@ -273,7 +316,9 @@ export const Profile = () => {
               <Input
                 id="website"
                 value={editForm.website}
-                onChange={(e) => setEditForm({ ...editForm, website: e.target.value })}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, website: e.target.value })
+                }
                 className="bg-neutral-800 border-neutral-700 text-neutral-100 focus:border-neutral-600 focus:ring-neutral-600"
                 placeholder="https://yourwebsite.com"
               />
@@ -286,7 +331,11 @@ export const Profile = () => {
               disabled={isSaving}
               className="px-6 py-2 bg-white text-neutral-900 font-semibold rounded-full hover:bg-neutral-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSaving ? <Loader2 size={20} className="animate-spin" /> : "Save changes"}
+              {isSaving ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : (
+                "Save changes"
+              )}
             </button>
           </div>
         </DialogContent>

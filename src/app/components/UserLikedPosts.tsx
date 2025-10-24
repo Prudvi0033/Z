@@ -53,7 +53,7 @@ const LikedPostSkeleton = () => (
 );
 
 const UserLikedPosts = () => {
-  const router = useRouter()
+  const router = useRouter();
   const [posts, setPosts] = useState<LikedPost[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -105,19 +105,27 @@ const UserLikedPosts = () => {
         <div
           key={post.id}
           onClick={() => {
-              router.push(`/${post.user.email?.split("@")[0]}/${post.id}`);
-            }}
+            router.push(`/${post.user.email?.split("@")[0]}/${post.id}`);
+          }}
           className="w-full border-b border-neutral-800 p-4 bg-neutral-900 hover:bg-neutral-800/50 transition-colors cursor-pointer"
         >
           <div className="flex items-start gap-3">
             {/* User avatar */}
-            <Image
-              src={post.user?.image || "/default-avatar.png"}
-              alt={post.user?.name || "User"}
-              width={40}
-              height={40}
-              className="rounded-full flex-shrink-0"
-            />
+            <div>
+              {post.user?.image ? (
+                <Image
+                  src={post.user?.image || "/default-avatar.png"}
+                  alt={post.user?.name || "User"}
+                  width={40}
+                  height={40}
+                  className="rounded-full flex-shrink-0"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-neutral-700 text-white flex items-center justify-center flex-shrink-0 font-semibold">
+                  {post.user?.name?.charAt(0).toUpperCase() || "U"}
+                </div>
+              )}
+            </div>
 
             <div className="flex-1 min-w-0">
               {/* User info and timestamp */}
@@ -151,8 +159,8 @@ const UserLikedPosts = () => {
                   <Image
                     src={post.postImage}
                     alt="Post image"
-                    width={30}
-                    height={30}
+                    width={500}
+                    height={500}
                     className="w-full h-auto"
                   />
                 </div>

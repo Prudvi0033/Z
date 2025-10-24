@@ -1,17 +1,18 @@
 'use client'
-import { Montserrat, Tangerine } from "next/font/google";
+import { Montserrat, Space_Grotesk, Tangerine } from "next/font/google";
 import { motion } from "motion/react";
 const monte = Montserrat({ subsets: ["latin"], weight: ["700"] });
 const tangi = Tangerine({ subsets: ["latin"], weight: ["700"] });
+const space = Space_Grotesk({subsets: ['latin']})
 const Footer = () => {
   return (
     <div
-      className={`min-h-screen selection:bg-neutral-300/40 text-white flex items-center px-32 justify-center ${monte.className}`}
+      className={`min-h-screen selection:bg-neutral-300/40 text-white flex items-center px-32 justify-center ${space.className}`}
     >
       <div
-        className={`flex flex-col w-fit items-center justify-center ${tangi.className}`}
+        className={`flex flex-col w-fit items-center justify-center ${space.className}`}
       >
-        <span className="text-2xl text-neutral-700">
+        <span className="text-sm text-neutral-700">
           Designed & Developer by
         </span>
         <a

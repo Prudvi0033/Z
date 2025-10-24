@@ -57,7 +57,6 @@ export const getUnreadNotificationCount = async () => {
 };
 
 
-
 export const markAllnotificationsAsRead = async () => {
   const session = await auth.api.getSession({
     headers: await headers(),
